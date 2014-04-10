@@ -25,6 +25,12 @@ object TreeSerialization {
   implicit def tsCons[A <: Action : TS, B <: Action : TS]: TS[Cons[A, B]] = new TS[Cons[A, B]] {
     def serialize = implicitly[TS[A]].serialize ++ implicitly[TS[B]].serialize
   }
+  implicit def tsBreak: TS[Break] = new TS[Break] {
+    def serialize = Seq("break")
+  }
+  implicit def tsLoop[A <: Action : TS] = new TS[Loop[A]] {
+    def serialize = "loop" +: indent[A]
+  }
 
   private def indent[A <: Action : TS]: Seq[String] = indent(implicitly[TS[A]].serialize)
   private def indent(v: Seq[String]) = ("- " + v.head) +: v.tail.map("  " + _)

@@ -13,11 +13,17 @@ object SessionTypes {
   /** Sequence: A then B. */
   sealed trait Cons[A <: Action, B <: Action] extends Action
 
+  /** Performs A until Break is encoutered. */
+  sealed trait Loop[A <: Action] extends Action
+  /** Exits the parent loop. */
+  sealed trait Break extends Action
+
   type ![Value] = Send[Value]
   type ?[Value] = Receive[Value]
   type :>:[A <: Action, B <: Action] = Cons[A, B]
   type :&:[A <: Action, B <: Action] = AnyOf[A, B]
   type :@:[A <: Action, B <: Action] = Choice[A, B]
+  type :| = Break
 
   private def witness = null
 
@@ -30,5 +36,7 @@ object SessionTypes {
   implicit def dualAnyOfChoice[A1 <: Action, A2 <: Action, B1 <: Action, B2 <: Action](implicit wa: Dual[A1, A2], wb: Dual[B1, B2]): Dual[AnyOf[A1, B1], Choice[A2, B2]] = witness
   implicit def dualAnyOfChoiceInvert[A1 <: Action, A2 <: Action, B1 <: Action, B2 <: Action](implicit wa: Dual[A1, B2], wb: Dual[B1, A2]): Dual[AnyOf[A1, B1], Choice[A2, B2]] = witness
   implicit def dualCons[A1 <: Action, A2 <: Action, B1 <: Action, B2 <: Action](implicit wa: Dual[A1, A2], wb: Dual[B1, B2]): Dual[Cons[A1, B1], Cons[A2, B2]] = witness
-  def dual[A <: Action, B <: Action](implicit w: Dual[A, B]) = witness
+  implicit def dualBreak: Dual[Break, Break] = witness
+  implicit def dualLoop[A1 <: Action, A2 <: Action](implicit w: Dual[A1, A2]): Dual[Loop[A1], Loop[A2]] = witness
+  def dual[A <: Action, B <: Action](implicit w: Dual[A, B]) = ()
 }

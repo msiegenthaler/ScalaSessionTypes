@@ -17,4 +17,16 @@ object Example extends App {
     ?[String] :>: (![Int] :@: ![Exception])]
   println(TreeSerialization[
     ![String] :>: (?[Int] :&: ?[Exception])])
+
+  println("*** Send Receive in loop ***")
+  dual[Loop[![String] :>: ?[Int]],
+    Loop[?[String] :>: ![Int]]]
+  println(TreeSerialization[
+    Loop[![String] :>: ?[Int]]])
+
+  println("*** Send Receive in loop with break ***")
+  dual[Loop[(![String] :>: ?[Int]) :@: (![Unit] :>: Break)],
+    Loop[(?[String] :>: ![Int]) :&: (?[Unit] :>: Break)]]
+  println(TreeSerialization[
+    Loop[(![String] :>: ?[Int]) :@: (![Unit] :>: Break)]])
 }

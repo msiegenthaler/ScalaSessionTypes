@@ -11,7 +11,7 @@ object SessionTypes {
   /** External Choice. */
   sealed trait AnyOf[A <: Action, B <: Action] extends Action
   /** Sequence: A then B. */
-  sealed trait Cons[A <: Action, B <: Action] extends Action
+  trait Cons[A <: Action, B <: Action] extends Action
 
   type ![Value] = Send[Value]
   type ?[Value] = Receive[Value]
@@ -22,7 +22,7 @@ object SessionTypes {
   private def witness = null
 
   @implicitNotFound("Protocol violation: ${A} and ${B} are not dual (client/server)")
-  sealed trait Dual[A <: Action, B <: Action]
+  sealed trait Dual[-A <: Action, -B <: Action]
   implicit def dualSend[V]: Dual[Send[V], Receive[V]] = witness
   implicit def dualReceive[V]: Dual[Receive[V], Send[V]] = witness
   implicit def dualChoiceAnyOf[A1 <: Action, A2 <: Action, B1 <: Action, B2 <: Action](implicit wa: Dual[A1, A2], wb: Dual[B1, B2]): Dual[Choice[A1, B1], AnyOf[A2, B2]] = witness

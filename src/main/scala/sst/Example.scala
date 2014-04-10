@@ -17,4 +17,12 @@ object Example extends App {
     ?[String] :>: (![Int] :@: ![Exception])]
   println(TreeSerialization[
     ![String] :>: (?[Int] :&: ?[Exception])])
+
+
+  println("*** Loop ***")
+  type RR = ![String] :>: ?[Int]
+  trait A_c extends Cons[?[Int], A_c]
+  trait A_s extends Cons[![Int], A_s]
+  dual[A_c, A_s]
+  println(TreeSerialization[A_c])
 }

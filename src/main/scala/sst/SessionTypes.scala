@@ -3,9 +3,7 @@ package sst
 import scala.annotation.implicitNotFound
 
 object SessionTypes {
-
   sealed trait Action
-
   sealed trait Send[Value] extends Action
   sealed trait Receive[Value] extends Action
   /** Internal Choice. */

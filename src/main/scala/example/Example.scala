@@ -1,7 +1,8 @@
-package sst
+package example
 
 import sst.SessionTypes._
 import sst.TreeSerialization.TS
+import sst.TreeSerialization
 
 object Example extends App {
 

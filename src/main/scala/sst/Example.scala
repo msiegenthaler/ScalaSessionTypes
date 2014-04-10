@@ -1,32 +1,41 @@
 package sst
 
-import SessionTypes._
+import sst.SessionTypes._
+import sst.TreeSerialization.TS
 
 object Example extends App {
 
-  println("*** Send Receive ***")
-  dual[
-    ![String] :>: ?[Int],
-    ?[String] :>: ![Int]]
-  println(TreeSerialization[
-    ![String] :>: ?[Int]])
+  def printTree[A <: Action : TS](name: String) = {
+    println(s"*** $name ***")
+    println(TreeSerialization[A])
+    println()
+  }
 
-  println("*** Send Receive with error handling ***")
-  dual[
-    ![String] :>: (?[Int] :&: ?[Exception]),
-    ?[String] :>: (![Int] :@: ![Exception])]
-  println(TreeSerialization[
-    ![String] :>: (?[Int] :&: ?[Exception])])
+  {
+    type client = ![String] :>: ?[Int]
+    type server = ?[String] :>: ![Int]
+    dual[client, server]
+    printTree[client]("send/receive")
+  }
 
-  println("*** Send Receive in loop ***")
-  dual[Loop[![String] :>: ?[Int]],
-    Loop[?[String] :>: ![Int]]]
-  println(TreeSerialization[
-    Loop[![String] :>: ?[Int]]])
+  {
+    type client = ![String] :>: (?[Int] :&: ?[Exception])
+    type server = ?[String] :>: (![Int] :@: ![Exception])
+    dual[client, server]
+    printTree[client]("send/receive with error handling")
+  }
 
-  println("*** Send Receive in loop with break ***")
-  dual[Loop[(![String] :>: ?[Int]) :@: (![Unit] :>: Break)],
-    Loop[(?[String] :>: ![Int]) :&: (?[Unit] :>: Break)]]
-  println(TreeSerialization[
-    Loop[(![String] :>: ?[Int]) :@: (![Unit] :>: Break)]])
+  {
+    type client = Loop[![String] :>: ?[Int]]
+    type server = Loop[?[String] :>: ![Int]]
+    dual[client, server]
+    printTree[client]("send/receive in loop")
+  }
+
+  {
+    type client = Loop[(![String] :>: ?[Int]) :@: (![Unit] :>: Break)]
+    type server = Loop[(?[String] :>: ![Int]) :&: (?[Unit] :>: Break)]
+    dual[client, server]
+    printTree[client]("send/receive in loop with break")
+  }
 }

@@ -2,14 +2,15 @@ package example
 
 import sst.SessionTypes._
 import sst.TreeSerialization.TS
-import sst.TreeSerialization
+import sst.{ActorIntegration, TreeSerialization}
+import sst.ActorIntegration._
 
 object Example extends App {
 
   def printTree[A <: Action : TS](name: String) = {
+    println()
     println(s"*** $name ***")
     println(TreeSerialization[A])
-    println()
   }
 
   {
@@ -17,6 +18,7 @@ object Example extends App {
     type server = ?[String] :>: ![Int]
     dual[client, server]
     printTree[client]("send/receive")
+    println(requestResponse[client].description)
   }
 
   {
@@ -24,6 +26,7 @@ object Example extends App {
     type server = ?[String] :>: (![Int] :@: ![Exception])
     dual[client, server]
     printTree[client]("send/receive with error handling")
+    println(requestResponse[client].description)
   }
 
   {

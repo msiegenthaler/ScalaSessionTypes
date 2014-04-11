@@ -25,7 +25,7 @@ object SessionTypes {
   type :@:[A <: Action, B <: Action] = Choice[A, B]
   type :| = Break
 
-  private def witness = null
+  private def witness[A]: A = null.asInstanceOf[A]
 
   @implicitNotFound("Protocol violation: ${A} and ${B} are not dual (client/server)")
   sealed trait Dual[A <: Action, B <: Action]

@@ -76,7 +76,8 @@ object Handle {
 
 
   trait Handler[On <: Coproduct, Remaining <: Coproduct, R] {
-    def run(on: On)(implicit w: HandlerIsRunnable[Remaining]): R
+    def run()(implicit w: HandlerIsRunnable[Remaining]): R
+    def handle[A, B](f: A => B)(implicit r: Remove[Remaining, A], contains: Contains.Yes[Remaining, A]) = Handler(this, f)
   }
   object Handler {
     def apply[On <: Coproduct](on: On): Handler[On, On, Nothing] = ???
@@ -93,13 +94,11 @@ object Handle {
 
   {
     val x: SI = ???
-    val h1 = Handler(x)
-    val h2 = Handler(h1, (_: String) => 12)
-    val h3 = Handler(h2, (_: Int) => 12)
-    //  val h4 = Handler(h3, (_: String) => 12)
-    //  val h5 = Handler[SI, SI, Exception, Int](h1, (_: Exception) => 12)
-    val r = h3.run(x)
-    //    val r_ = h2.run(x)
+    val r = Handler(x).
+      handle((a: String) => a.length).
+      handle((a: Int) => a).
+      //      handle((a: Exception) => a).
+      run()
   }
 
 }

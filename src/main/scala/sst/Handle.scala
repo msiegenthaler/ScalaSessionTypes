@@ -10,23 +10,17 @@ object Handle {
 
 
   @implicitNotFound("${From} does not contain ${What}")
-  trait Remove[From <: Coproduct, What] extends DepFn2[From, What] {
+  trait Remove[From <: Coproduct, What] {
     type Out <: Coproduct
   }
   trait LowPrioRemove {
     type Aux[From <: Coproduct, What, Res <: Coproduct] = Remove[From, What] {type Out = Res}
-    implicit def notFound[H, T <: Coproduct, What]: Aux[H :+: T, What, H :+: T] = new Remove[H :+: T, What] {
-      type Out = H :+: T
-      def apply(from: H :+: T, what: What) = from
-    }
+    implicit def notFound[H, T <: Coproduct, What]: Aux[H :+: T, What, H :+: T] = witness
   }
   object Remove extends LowPrioRemove {
     def apply[From <: Coproduct, What](implicit w: Remove[From, What]): Remove[From, What] {type Out = w.Out} = w
 
-    implicit def found[H, T <: Coproduct, What](implicit a: What =:= H): Aux[H :+: T, What, T] = new Remove[H :+: T, What] {
-      type Out = T
-      def apply(from: H :+: T, what: What) = ???
-    }
+    implicit def found[H, T <: Coproduct, What](implicit a: What =:= H): Aux[H :+: T, What, T] = witness
   }
 
   {

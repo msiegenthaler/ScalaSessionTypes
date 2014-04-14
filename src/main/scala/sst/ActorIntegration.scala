@@ -1,48 +1,43 @@
 package sst
 
-import scala.reflect.ClassTag
 import scala.annotation.implicitNotFound
+import scala.reflect.ClassTag
 import shapeless._
 
 object ActorIntegration {
-  def witness[A]: A = null.asInstanceOf[A]
-
-  sealed class ResponseType[T <: Coproduct](tags: ClassTag[_]*) {
-    type Type = T
-    def describe = tags.map(_.toString).mkString(" :+: ")
-    override def toString = describe
+  sealed trait Request[A <: Action] {
+    type Out <: Coproduct
+    def description: String
   }
-  object ResponseType {
-    def _1[A: ClassTag]: ResponseType[A :+: CNil] = new ResponseType(tag[A])
-    def _2[A: ClassTag, B: ClassTag]: ResponseType[A :+: B :+: CNil] = new ResponseType(tag[A], tag[B])
-    protected def tag[A: ClassTag] = implicitly[ClassTag[A]]
-  }
+  object Request {
+    @implicitNotFound("Not a response: ${A}")
+    type Aux[A <: Action, Out0 <: Coproduct] = Request[A] {type Out = Out0}
 
-  sealed class ResponseComposer[A <: Action, R <: ResponseType[T], T <: Coproduct](val response: R) {
-    type Response = R
-    type Type = T
-  }
-  implicit def rcReceive[A: ClassTag]: ResponseComposer[Receive[A], ResponseType[A :+: CNil], A :+: CNil] = new ResponseComposer(ResponseType._1[A])
-  implicit def rcAnyOf2[A: ClassTag, B: ClassTag]: ResponseComposer[AnyOf[Receive[A], Receive[B]], ResponseType[A :+: B :+: CNil], A :+: B :+: CNil] =
-    new ResponseComposer(ResponseType._2[A, B])
-  //TODO for more than 2...
-
-
-  @implicitNotFound("Not a request/response ${A}")
-  final class RRComposer[A, Request, Response](val response2: Response) {
-    type Req = Request
-    type Resp = Response
-    val response: Resp = response2
-  }
-  implicit def rr[Req, Resp <: Action](implicit rc: ResponseComposer[Resp, _, _]): RRComposer[Cons[Send[Req], Resp], Req, rc.Response] =
-    new RRComposer(rc.response.asInstanceOf[rc.Response])
-
-  final class RequestResponse[Request, Response](val response: Response) {
-    def check(request: Request, response: Response) = ()
-    def description(implicit request: ClassTag[Request]) =
-      request.toString + " => " + response.toString
+    implicit def receive[A: ClassTag] = new Request[Receive[A]] {
+      type Out = A :+: CNil
+      val description = implicitly[ClassTag[A]].toString
+    }
+    //TODO does not work for more than to, we'd actually need to do :++:
+    implicit def anyOf[A <: Action, B <: Action, O1 <: Coproduct, O2 <: Coproduct](implicit a: Aux[A, O1], b: Aux[B, O2]) = new Request[AnyOf[A, B]] {
+      type Out = O1 :+: O2
+      val description = a.description + " :+: " + b.description
+    }
   }
 
-  implicit def requestResponse[A <: Action](implicit rrc: RRComposer[A, _, _]): RequestResponse[rrc.Req, rrc.Resp] =
-    new RequestResponse(rrc.response)
+  @implicitNotFound("Not a request/response: ${A}")
+  sealed trait RequestResponse[A <: Action] {
+    type Request
+    type Response <: Coproduct
+    def description: String
+  }
+  object RequestResponse {
+    def apply[A <: Action](implicit R: RequestResponse[A]): RequestResponse[A] {type Request = R.Request; type Response = R.Response} = R
+
+    type Aux[A <: Action, Req, Resp <: Coproduct] = RequestResponse[A] {type Request = Req; type Response = Resp}
+    implicit def sendReceive[A: ClassTag, R <: Action](implicit r: Request[R]) = new RequestResponse[Cons[Send[A], R]] {
+      type Request = A
+      type Response = r.Out
+      val description = implicitly[ClassTag[A]].toString + " => " + r.description
+    }
+  }
 }

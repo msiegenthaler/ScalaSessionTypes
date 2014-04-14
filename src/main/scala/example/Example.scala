@@ -2,8 +2,8 @@ package example
 
 import sst._
 import sst.TreeSerialization._
-import sst.ActorIntegration._
 import sst.Opposites._
+import sst.ActorIntegration._
 
 object Example extends App {
   def printTree[A <: Action : TS](name: String) = {
@@ -21,8 +21,8 @@ object Example extends App {
     implicitly[server =:= opC.Out]
 
     printTree[client]("send/receive")
-    println(requestResponse[client].description)
-    println(requestResponse[opS.Out].description)
+    println(RequestResponse[client].description)
+    println(RequestResponse[opS.Out].description)
     printTree[opC.Out]("receive/send")
   }
 
@@ -34,8 +34,8 @@ object Example extends App {
     val opS = Opposite[server]
     implicitly[server =:= opC.Out]
     printTree[client]("send/receive with error handling")
-    println(requestResponse[client].description)
-    println(requestResponse[opS.Out].description)
+    println(RequestResponse[client].description)
+    println(RequestResponse[opS.Out].description)
   }
 
   {

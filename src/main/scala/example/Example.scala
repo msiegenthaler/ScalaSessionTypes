@@ -30,15 +30,15 @@ object Example extends App {
   }
 
   {
-    type client = Loop[![String] :>: ?[Int]]
-    type server = Loop[?[String] :>: ![Int]]
+    type client = Repeat[![String] :>: ?[Int]]
+    type server = Repeat[?[String] :>: ![Int]]
     dual[client, server]
     printTree[client]("send/receive in loop")
   }
 
   {
-    type client = Loop[(![String] :>: ?[Int]) :@: (![Unit] :>: Break)]
-    type server = Loop[(?[String] :>: ![Int]) :&: (?[Unit] :>: Break)]
+    type client = Repeat[(![String] :>: ?[Int]) :@: (![Unit] :>: Break)]
+    type server = Repeat[(?[String] :>: ![Int]) :&: (?[Unit] :>: Break)]
     dual[client, server]
     printTree[client]("send/receive in loop with break")
   }

@@ -28,8 +28,8 @@ object TreeSerialization {
   implicit def tsBreak: TS[Break] = new TS[Break] {
     def serialize = Seq("break")
   }
-  implicit def tsLoop[A <: Action : TS] = new TS[Loop[A]] {
-    def serialize = "loop" +: indent[A]
+  implicit def tsRepeat[A <: Action : TS] = new TS[Repeat[A]] {
+    def serialize = "repeat" +: indent[A]
   }
 
   private def indent[A <: Action : TS]: Seq[String] = indent(implicitly[TS[A]].serialize)

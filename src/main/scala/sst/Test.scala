@@ -1,0 +1,5 @@
+package sst
+
+object Test {
+
+}

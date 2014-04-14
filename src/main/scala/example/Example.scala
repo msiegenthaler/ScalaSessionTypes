@@ -1,7 +1,6 @@
 package example
 
-import sst.SessionTypes._
-import sst.TreeSerialization
+import sst._
 import sst.TreeSerialization._
 import sst.ActorIntegration._
 import sst.Opposites._
@@ -16,7 +15,7 @@ object Example extends App {
   {
     type client = ![String] :>: ?[Int]
     type server = ?[String] :>: ![Int]
-    Opposite.is[client,server]
+    Opposite.is[client, server]
     val opC = Opposite[client]
     val opS = Opposite[server]
     implicitly[server =:= opC.Out]

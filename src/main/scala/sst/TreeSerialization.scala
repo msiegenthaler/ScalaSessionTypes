@@ -1,7 +1,6 @@
 package sst
 
 import scala.reflect._
-import SessionTypes._
 
 
 object TreeSerialization {

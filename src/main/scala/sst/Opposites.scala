@@ -1,6 +1,5 @@
 package sst
 
-import sst.SessionTypes._
 import shapeless._
 import scala.annotation.implicitNotFound
 

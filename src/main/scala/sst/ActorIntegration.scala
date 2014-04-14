@@ -1,6 +1,5 @@
 package sst
 
-import sst.SessionTypes._
 import scala.reflect.ClassTag
 import scala.annotation.implicitNotFound
 import shapeless._

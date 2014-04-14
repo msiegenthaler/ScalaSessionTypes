@@ -1,5 +1,0 @@
-package sst
-
-object Test {
-
-}

@@ -75,12 +75,9 @@ object Handle {
   //
 
 
-  trait Handler[On <: Coproduct, Remaining <: Coproduct, -R]
-  @implicitNotFound("Cannot run handler, unhandled cases left: ${R}")
-  implicit class ExecutableHandler[On <: Coproduct, R](handler: Handler[On, CNil, R]) {
-    def run(on: On): R = ??? // TODO
+  trait Handler[On <: Coproduct, Remaining <: Coproduct, R] {
+    def run(on: On)(implicit w: HandlerIsRunnable[Remaining]): R
   }
-
   object Handler {
     def apply[On <: Coproduct](on: On): Handler[On, On, Nothing] = ???
     def apply[On <: Coproduct, Remaining <: Coproduct, B1, A, B >: B1](handler: Handler[On, Remaining, B1], f: A => B)
@@ -88,15 +85,21 @@ object Handle {
       ???
     }
   }
+  @implicitNotFound("Cannot run handler, unhandled cases left: ${Remaining}")
+  sealed trait HandlerIsRunnable[Remaining <: Coproduct]
+  object HandlerIsRunnable {
+    implicit def emptyIsRunnable: HandlerIsRunnable[CNil] = witness
+  }
 
-  //  val a: String :+: Int :+: CNil = ???
-  val x: SI = ???
-  val h1 = Handler(x)
-  val h2 = Handler(h1, (_: String) => 12)
-  val h3 = Handler(h2, (_: Int) => 12)
-  //  val h4 = Handler(h3, (_: String) => 12)
-  //  val h5 = Handler[SI, SI, Exception, Int](h1, (_: Exception) => 12)
-  h3.run(x)
-
+  {
+    val x: SI = ???
+    val h1 = Handler(x)
+    val h2 = Handler(h1, (_: String) => 12)
+    val h3 = Handler(h2, (_: Int) => 12)
+    //  val h4 = Handler(h3, (_: String) => 12)
+    //  val h5 = Handler[SI, SI, Exception, Int](h1, (_: Exception) => 12)
+    val r = h3.run(x)
+    //    val r_ = h2.run(x)
+  }
 
 }

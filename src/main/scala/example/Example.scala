@@ -5,7 +5,7 @@ import sst.TreeSerialization._
 import sst.Opposites._
 import sst.ActorIntegration._
 import shapeless._
-import syntax.typeable._
+import Handle._
 
 object Example extends App {
   def printTree[A <: Action : TS](name: String) = {
@@ -31,6 +31,7 @@ object Example extends App {
     })
     val resp = RequestResponse[client].exec(actor, 1234)
     println(resp.select[String])
+    println(Handler(resp).handleTyped[String](identity).run())
   }
 
   {
@@ -57,6 +58,15 @@ object Example extends App {
     val resp2 = RequestResponse[client].exec(actor, "2a")
     println(resp2.select[Int])
     println(resp2.select[Exception])
+
+    println(Handler(resp1).
+      handleTyped[Int](identity).
+      handleTyped[Exception](e => 0).
+      run())
+    println(Handler(resp2).
+      handleTyped[Int](identity).
+      handleTyped[Exception](e => 0).
+      run())
   }
 
   {

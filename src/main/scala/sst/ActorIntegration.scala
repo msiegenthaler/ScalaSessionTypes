@@ -3,6 +3,8 @@ package sst
 import scala.annotation.implicitNotFound
 import scala.reflect.ClassTag
 import shapeless._
+import syntax.typeable._
+import shapeless.ops.coproduct.Inject
 
 object ActorIntegration {
   //TODO This is a stub..
@@ -19,24 +21,29 @@ object ActorIntegration {
 
   sealed trait Response[A <: Action] {
     type Out <: Coproduct
-    def typeable: Typeable[Out]
-    def description: String
-  }
+    def parse(value: Any): Option[Out] = parts.view.flatMap(_.parser(value)).headOption
+    def description: String = parts.map(_.tag.toString).mkString(" :+: ")
+    protected type Parser = Any => Option[Out]
+    protected case class Part(parser: Parser, tag: ClassTag[_])
+    protected def parts: List[Part]
+    protected def part[X: Typeable : ClassTag](implicit i: Inject[Out, X]) = {
+      val p = (value: Any) => value.cast[X] map (Coproduct[Out](_))
+      Part(p, implicitly[ClassTag[X]])
+    }
+ }
   object Response {
     @implicitNotFound("Not a response: ${A}")
     type Aux[A <: Action, Out0 <: Coproduct] = Response[A] {type Out = Out0}
 
-    implicit def receive[A: ClassTag](implicit t: Typeable[A :+: CNil]) = new Response[Receive[A]] {
+    implicit def receive[A: ClassTag : Typeable] = new Response[Receive[A]] {
       type Out = A :+: CNil
-      def typeable = t
-      val description = implicitly[ClassTag[A]].toString
+      val parts = part[A] :: Nil
     }
-    //TODO does not work for more than to, we'd actually need to do :++:
-    implicit def anyOf[A <: Action, B <: Action, O1 <: Coproduct, O2 <: Coproduct](implicit a: Aux[A, O1], b: Aux[B, O2], t: Typeable[O1 :+: O2]) = new Response[AnyOf[A, B]] {
-      type Out = O1 :+: O2
-      def typeable = t
-      val description = a.description + " :+: " + b.description
+    implicit def receive2[A: ClassTag : Typeable, B: ClassTag : Typeable] = new Response[AnyOf[Receive[A], Receive[B]]] {
+      type Out = A :+: B :+: CNil
+      val parts = part[A] :: part[B] :: Nil
     }
+    //TODO more than 2 options
   }
 
   @implicitNotFound("Not a request/response: ${A}")
@@ -44,12 +51,10 @@ object ActorIntegration {
     type Request
     type Response
     def description: String
-    protected val responseTypeable: Typeable[Response]
+    protected def parse(value: Any): Option[Response]
     def exec(actor: ActorRef, req: Request): Response = {
       val resp = actor ? req
-      val respUncasted = Coproduct[Any :+: CNil](resp)
-      responseTypeable.cast(respUncasted).
-        getOrElse(throw new MatchError(s"Unexpected response: $resp"))
+      parse(resp).getOrElse(throw new MatchError(s"Unexpected response: $resp"))
     }
   }
   object RequestResponse {
@@ -57,9 +62,9 @@ object ActorIntegration {
 
     type Aux[A <: Action, Req, Resp <: Coproduct] = RequestResponse[A] {type Request = Req; type Response = Resp}
     implicit def sendReceive[A: ClassTag, R <: Action](implicit r: Response[R]) = new RequestResponse[Cons[Send[A], R]] {
-      val responseTypeable = r.typeable
       type Request = A
       type Response = r.Out
+      def parse(value: Any): Option[Response] = r.parse(value)
       val description = implicitly[ClassTag[A]].toString + " => " + r.description
     }
   }

@@ -29,8 +29,7 @@ object Example extends App {
     val actor = new ActorRef("actor-1", {
       case a: Int => s"Hello #-$a"
     })
-    val a = RequestResponse[client]
-    val resp = a.exec(actor, 1234)
+    val resp = RequestResponse[client].exec(actor, 1234)
     println(resp.select[String])
   }
 
@@ -44,6 +43,20 @@ object Example extends App {
     printTree[client]("send/receive with error handling")
     println(RequestResponse[client].description)
     println(RequestResponse[opS.Out].description)
+
+    val actor = new ActorRef("actor-2", {
+      case a: String => try {
+        a.toInt
+      } catch {
+        case e: NumberFormatException => e
+      }
+    })
+    val resp1 = RequestResponse[client].exec(actor, "1234")
+    println(resp1.select[Int])
+    println(resp1.select[Exception])
+    val resp2 = RequestResponse[client].exec(actor, "2a")
+    println(resp2.select[Int])
+    println(resp2.select[Exception])
   }
 
   {

@@ -20,7 +20,6 @@ object Example extends App {
     val opC = Opposite[client]
     val opS = Opposite[server]
     implicitly[server =:= opC.Out]
-    dual[client, server]
 
     printTree[client]("send/receive")
     println(requestResponse[client].description)

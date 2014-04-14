@@ -5,6 +5,7 @@ import scala.reflect.ClassTag
 import shapeless._
 import syntax.typeable._
 import shapeless.ops.coproduct.Inject
+import sst.Handle._
 
 object ActorIntegration {
   //TODO This is a stub..
@@ -49,12 +50,16 @@ object ActorIntegration {
   @implicitNotFound("Not a request/response: ${A}")
   sealed trait RequestResponse[A <: Action] {
     type Request
-    type Response
+    type Response <: Coproduct
     def description: String
     protected def parse(value: Any): Option[Response]
     def exec(actor: ActorRef, req: Request): Response = {
       val resp = actor ? req
       parse(resp).getOrElse(throw new MatchError(s"Unexpected response: $resp"))
+    }
+    def handle(actor: ActorRef, request: Request) = {
+      val response = exec(actor, request)
+      Handler(response)
     }
   }
   object RequestResponse {

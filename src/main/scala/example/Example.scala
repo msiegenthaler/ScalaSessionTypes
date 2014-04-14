@@ -59,11 +59,11 @@ object Example extends App {
     println(resp2.select[Int])
     println(resp2.select[Exception])
 
-    println(Handler(resp1).
+    println(RequestResponse[client].handle(actor, "123").
       handleTyped[Int](identity).
       handleTyped[Exception](e => 0).
       run())
-    println(Handler(resp2).
+    println(RequestResponse[client].handle(actor, "a2").
       handleTyped[Int](identity).
       handleTyped[Exception](e => 0).
       run())

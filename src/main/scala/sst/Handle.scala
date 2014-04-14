@@ -76,13 +76,15 @@ object Handle {
 
 
   trait Handler[On <: Coproduct, Remaining <: Coproduct, -R]
+  @implicitNotFound("Cannot run handler, unhandled cases left: ${R}")
   implicit class ExecutableHandler[On <: Coproduct, R](handler: Handler[On, CNil, R]) {
     def run(on: On): R = ??? // TODO
   }
+
   object Handler {
-    def apply[On <: Coproduct, B](on: On): Handler[On, On, B] = ???
-    def apply[On <: Coproduct, Remaining <: Coproduct, A, B](handler: Handler[On, Remaining, B], f: A => B)
-                                                            (implicit r: Remove[Remaining, A], contains: Contains.Yes[Remaining, A]): Handler[On, r.Out, B] = {
+    def apply[On <: Coproduct](on: On): Handler[On, On, Nothing] = ???
+    def apply[On <: Coproduct, Remaining <: Coproduct, B1, A, B >: B1](handler: Handler[On, Remaining, B1], f: A => B)
+                                                                      (implicit r: Remove[Remaining, A], contains: Contains.Yes[Remaining, A]): Handler[On, r.Out, B] = {
       ???
     }
   }

@@ -4,6 +4,8 @@ import sst._
 import sst.TreeSerialization._
 import sst.Opposites._
 import sst.ActorIntegration._
+import shapeless._
+import syntax.typeable._
 
 object Example extends App {
   def printTree[A <: Action : TS](name: String) = {
@@ -13,8 +15,8 @@ object Example extends App {
   }
 
   {
-    type client = ![String] :>: ?[Int]
-    type server = ?[String] :>: ![Int]
+    type client = ![Int] :>: ?[String]
+    type server = ?[Int] :>: ![String]
     Opposite.is[client, server]
     val opC = Opposite[client]
     val opS = Opposite[server]
@@ -23,7 +25,13 @@ object Example extends App {
     printTree[client]("send/receive")
     println(RequestResponse[client].description)
     println(RequestResponse[opS.Out].description)
-    printTree[opC.Out]("receive/send")
+
+    val actor = new ActorRef("actor-1", {
+      case a: Int => s"Hello #-$a"
+    })
+    val a = RequestResponse[client]
+    val resp = a.exec(actor, 1234)
+    println(resp.select[String])
   }
 
   {

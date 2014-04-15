@@ -1,5 +1,6 @@
 package sst
 
+import scala.language.existentials
 import scala.annotation.implicitNotFound
 import scala.reflect.ClassTag
 import shapeless._

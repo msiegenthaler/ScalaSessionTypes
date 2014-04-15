@@ -1,5 +1,6 @@
 package example
 
+import scala.language.reflectiveCalls
 import sst._
 import sst.TreeSerialization._
 import sst.Opposites._

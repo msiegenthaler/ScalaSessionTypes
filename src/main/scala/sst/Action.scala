@@ -1,22 +1,38 @@
 package sst
 
-sealed trait Action
+sealed trait Action {
+  type Type <: Action
+}
 object Action extends ActionFactory
 
 /** Send a message of type Value. */
-case class Send[Value]() extends Action
+case class Send[Value]() extends Action {
+  type Type = Send[Value]
+}
 /** Receive a message of type Value. */
-case class Receive[Value]() extends Action
+case class Receive[Value]() extends Action {
+  type Type = Receive[Value]
+}
 /** Internal Choice. */
-case class Choice[A <: Action, B <: Action](a: A, b: B) extends Action
+case class Choice[A <: Action, B <: Action](a: A, b: B) extends Action {
+  type Type = Choice[A, B]
+}
 /** External Choice. */
-case class AnyOf[+A <: Action, +B <: Action](a: A, b: B) extends Action
+case class AnyOf[A <: Action, B <: Action](a: A, b: B) extends Action {
+  type Type = AnyOf[A, B]
+}
 /** Sequence: A then B. */
-case class Then[A <: Action, Next <: Action](action: A, next: Next) extends Action
+case class Then[A <: Action, Next <: Action](action: A, next: Next) extends Action {
+  type Type = Then[A, Next]
+}
 /** Performs A until Break is encoutered. */
-case class Repeat[A <: Action](a: Action) extends Action
+case class Repeat[A <: Action](a: Action) extends Action {
+  type Type = Repeat[A]
+}
 /** Exits the parent loop. */
-case class Break() extends Action
+case class Break() extends Action {
+  type Type = Break
+}
 
 
 trait ActionFactory {

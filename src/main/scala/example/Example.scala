@@ -94,5 +94,6 @@ object Example extends App {
       chooseFrom(
         send[Int].receive[String],
         send[String].receive[Int])
+    Opposite[x.Type]
   }
 }

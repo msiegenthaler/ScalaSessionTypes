@@ -87,4 +87,12 @@ object Example extends App {
     implicitly[server =:= opC.Out]
     printTree[client]("send/receive in loop with break")
   }
+
+  {
+    val x = send[Int].
+      send[Long].receiveAnyOf2[String, Exception].answer[Unit].
+      chooseFrom(
+        send[Int].receive[String],
+        send[String].receive[Int])
+  }
 }

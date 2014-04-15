@@ -21,7 +21,7 @@ object TreeSerialization {
   implicit def tsAnyOf[A <: Action : TS, B <: Action : TS]: TS[AnyOf[A, B]] = new TS[AnyOf[A, B]] {
     def serialize = "any of" +: (indent[A] ++ indent[B])
   }
-  implicit def tsCons[A <: Action : TS, B <: Action : TS]: TS[Cons[A, B]] = new TS[Cons[A, B]] {
+  implicit def tsThen[A <: Action : TS, B <: Action : TS]: TS[Then[A, B]] = new TS[Then[A, B]] {
     def serialize = implicitly[TS[A]].serialize ++ implicitly[TS[B]].serialize
   }
   implicit def tsBreak: TS[Break] = new TS[Break] {

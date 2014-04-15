@@ -45,7 +45,7 @@ object RequestResponse {
     def apply[A <: Action](implicit R: RequestResponse[A]): RequestResponse[A] {type Request = R.Request; type Response = R.Response} = R
 
     type Aux[A <: Action, Req, Resp <: Coproduct] = RequestResponse[A] {type Request = Req; type Response = Resp}
-    implicit def sendReceive[A: ClassTag, R <: Action](implicit r: Response[R]) = new RequestResponse[Cons[Send[A], R]] {
+    implicit def sendReceive[A: ClassTag, R <: Action](implicit r: Response[R]) = new RequestResponse[Then[Send[A], R]] {
       type Request = A
       type Response = r.Out
       def parse(value: Any): Option[Response] = r.parse(value)

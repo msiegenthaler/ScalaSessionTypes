@@ -1,5 +1,6 @@
 package sst
 
+import scala.language.reflectiveCalls
 import shapeless._
 import scala.annotation.implicitNotFound
 import shapeless.ops.coproduct._

@@ -1,10 +1,10 @@
 package example
 
+import scala.language.reflectiveCalls
 import sst._
 import sst.TreeSerialization._
 import sst.Opposites._
 import sst.ActorIntegration._
-import shapeless._
 import Handle._
 
 object Example extends App {
@@ -85,5 +85,14 @@ object Example extends App {
     val opC = Opposite[client]
     implicitly[server =:= opC.Out]
     printTree[client]("send/receive in loop with break")
+  }
+
+  {
+    val x = send[Int].
+      send[Long].receiveAnyOf2[String, Exception].answer[Unit].
+      chooseFrom(
+        send[Int].receive[String],
+        send[String].receive[Int])
+    Opposite[x.Type]
   }
 }

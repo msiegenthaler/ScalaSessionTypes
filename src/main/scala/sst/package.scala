@@ -1,22 +1,11 @@
-package object sst {
-  sealed trait Action
-  sealed trait Send[Value] extends Action
-  sealed trait Receive[Value] extends Action
-  /** Internal Choice. */
-  sealed trait Choice[A <: Action, B <: Action] extends Action
-  /** External Choice. */
-  sealed trait AnyOf[A <: Action, B <: Action] extends Action
-  /** Sequence: A then B. */
-  sealed trait Cons[A <: Action, B <: Action] extends Action
+import scala.language.implicitConversions
 
-  /** Performs A until Break is encoutered. */
-  sealed trait Repeat[A <: Action] extends Action
-  /** Exits the parent loop. */
-  sealed trait Break extends Action
+package object sst extends ActionFactory {
+  implicit def actionOps[A <: Action](a: A): ActionOps[A] = new ActionOps(a)
 
   type ![Value] = Send[Value]
   type ?[Value] = Receive[Value]
-  type :>:[A <: Action, B <: Action] = Cons[A, B]
+  type :>:[A <: Action, B <: Action] = Then[A, B]
   type :&:[A <: Action, B <: Action] = AnyOf[A, B]
   type :@:[A <: Action, B <: Action] = Choice[A, B]
   type :| = Break

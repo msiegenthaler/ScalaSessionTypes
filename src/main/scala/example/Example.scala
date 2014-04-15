@@ -5,7 +5,6 @@ import sst._
 import sst.TreeSerialization._
 import sst.Opposites._
 import sst.ActorIntegration._
-import shapeless._
 import Handle._
 
 object Example extends App {

@@ -25,7 +25,7 @@ case class AnyOf[A <: Action, B <: Action](a: A, b: B) extends Action {
 case class Then[A <: Action, Next <: Action](action: A, next: Next) extends Action {
   type Type = Then[A, Next]
 }
-/** Performs A until Break is encoutered. */
+/** Performs A until Break is encountered. */
 case class Repeat[A <: Action](a: Action) extends Action {
   type Type = Repeat[A]
 }

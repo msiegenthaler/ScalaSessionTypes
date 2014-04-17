@@ -8,6 +8,7 @@ import syntax.typeable._
 import shapeless.ops.coproduct._
 
 
+/** Parses send > anyOf(receive*) structures into a request type and a response (coproduct) type. */
 @implicitNotFound("Not a request/response: ${A}")
 sealed trait RequestResponse[A <: Action] {
   type Request
@@ -17,7 +18,6 @@ sealed trait RequestResponse[A <: Action] {
 }
 object RequestResponse {
   def apply[A <: Action](implicit r: RequestResponse[A]): RequestResponse[A] {type Request = r.Request; type Response = r.Response} = r
-  def description[A <: Action](implicit r: RequestResponse[A]) = r.description
 
   type Aux[A <: Action, Req, Resp <: Coproduct] = RequestResponse[A] {type Request = Req; type Response = Resp}
   implicit def sendReceive[A: ClassTag, R <: Action](implicit r: Response[R]) = new RequestResponse[Then[Send[A], R]] {

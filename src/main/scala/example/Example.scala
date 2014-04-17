@@ -10,7 +10,6 @@ import sst._
 import sst.TreeSerialization._
 import sst.Opposites._
 import sst.AkkaIntegration._
-import scala.util.Try
 
 object Example extends App {
   def printTree[A <: Action : TS](name: String) = {

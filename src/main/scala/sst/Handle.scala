@@ -87,25 +87,26 @@ object Handle {
   //
 
 
-  final class Handler[On <: Coproduct, Remaining <: Coproduct, R](protected val on: On, protected val handler: PartialFunction[On, R]) {
-    def run()(implicit w: HandlerIsRunnable[Remaining]): R = {
-      handler.lift(on).
-        getOrElse(throw new MatchError(s"Handler did not match $on"))
-    }
-    def handle[A, B](f: A => B)(implicit r: Remove[Remaining, A], contains: Contains.Yes[Remaining, A], s: Selector[On, A]) = Handler(this, f)
+  final class Handler[On <: Coproduct, Remaining <: Coproduct, R](protected val fun: PartialFunction[On, R]) {
+    def handler: On => R = on =>
+      fun.lift(on).getOrElse(throw new MatchError(s"Handler did not match $on"))
+    def handle[A, B](f: A => B)(implicit r: Remove[Remaining, A], contains: Contains.Yes[Remaining, A], s: Selector[On, A]) =
+      Handler.compose(this, f)
     def handleTyped[A] = new AnyRef {
       def apply[B](f: A => B)(implicit r: Remove[Remaining, A], contains: Contains.Yes[Remaining, A], s: Selector[On, A]) = handle(f)
     }
   }
   object Handler {
-    def apply[On <: Coproduct](on: On): Handler[On, On, Nothing] = new Handler(on, PartialFunction.empty)
-    def apply[On <: Coproduct, Remaining <: Coproduct, B1, A, B >: B1](handler: Handler[On, Remaining, B1], f: A => B)
-                                                                      (implicit r: Remove[Remaining, A], contains: Contains.Yes[Remaining, A], s: Selector[On, A]): Handler[On, r.Out, B] = {
+    def apply[On <: Coproduct]: Handler[On, On, Nothing] = new Handler(PartialFunction.empty)
+    private def compose[On <: Coproduct, Remaining <: Coproduct, B1, A, B >: B1]
+      (handler: Handler[On, Remaining, B1], f: A => B)
+      (implicit r: Remove[Remaining, A], contains: Contains.Yes[Remaining, A], s: Selector[On, A]): Handler[On, r.Out, B] = {
+
       def fun = new PartialFunction[On, B] {
         def isDefinedAt(x: On) = s(x).isDefined
         def apply(x: On) = f(s(x).get)
       }
-      new Handler(handler.on, handler.handler orElse fun)
+      new Handler(handler.fun orElse fun)
     }
   }
   @implicitNotFound("Cannot run handler, unhandled cases left: ${Remaining}")
@@ -116,11 +117,9 @@ object Handle {
 
   {
     val x = Coproduct[SI]("Mario")
-    val r = Handler(x).
+    val r = Handler[SI].
       handleTyped[String](_.length).
-      handle((a: Int) => a).
-      //      handle((a: Exception) => a).
-      run()
+      handleTyped[Int]((a: Int) => a).
+      handler(x)
   }
-
 }

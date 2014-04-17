@@ -7,7 +7,12 @@ import shapeless.ops.coproduct._
 
 object Handle {
   type I = Int :+: CNil
+  type S = String :+: CNil
+  type L = String :+: CNil
   type SI = String :+: Int :+: CNil
+  type SL = String :+: Long :+: CNil
+  type IL = Int :+: Long :+: CNil
+  type SIL = String :+: Int :+: Long :+: CNil
   val a = Coproduct[SI]("hi")
 
 
@@ -17,7 +22,7 @@ object Handle {
   }
   trait LowPrioRemove {
     type Aux[From <: Coproduct, What, Res <: Coproduct] = Remove[From, What] {type Out = Res}
-    implicit def notFound[H, T <: Coproduct, What]: Aux[H :+: T, What, H :+: T] = witness
+    implicit def notFound[H, T <: Coproduct, What](implicit w: Remove[T, What]): Aux[H :+: T, What, H :+: w.Out] = witness
   }
   object Remove extends LowPrioRemove {
     def apply[From <: Coproduct, What](implicit w: Remove[From, What]): Remove[From, What] {type Out = w.Out} = w
@@ -28,6 +33,18 @@ object Handle {
   {
     val r = Remove[SI, String]
     implicitly[I =:= r.Out]
+
+    val r2 = Remove[SI, Int]
+    implicitly[S =:= r2.Out]
+
+    val r3 = Remove[SIL, Long]
+    implicitly[SI =:= r3.Out]
+
+    val r4 = Remove[SIL, Int]
+    implicitly[SL =:= r4.Out]
+
+    val r5 = Remove[SIL, String]
+    implicitly[IL =:= r5.Out]
   }
 
   ///
@@ -43,7 +60,6 @@ object Handle {
   trait LowPrioContains {
     type Aux[In <: Coproduct, What, Res <: Bool] = Contains[In, What] {type Out = Res}
     implicit def notCurrent[H, T <: Coproduct, What](implicit t: Contains[T, What]): Aux[H :+: T, What, t.Out] = witness
-    //    implicit def notCurrent[H, T <: Coproduct, What]: Aux[H :+: T, What, True] = witness
   }
   object Contains extends LowPrioContains {
     def apply[In <: Coproduct, What](implicit c: Contains[In, What]): Contains[In, What] {type Out = c.Out} = witness

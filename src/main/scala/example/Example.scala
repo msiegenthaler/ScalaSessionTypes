@@ -1,11 +1,16 @@
 package example
 
 import scala.language.reflectiveCalls
+import scala.concurrent._
+import scala.concurrent.ExecutionContext.Implicits._
+import scala.concurrent.duration._
+import akka.actor._
+import akka.util.Timeout
 import sst._
 import sst.TreeSerialization._
 import sst.Opposites._
-import sst.ActorIntegration._
-import Handle._
+import sst.AkkaIntegration._
+import scala.util.Try
 
 object Example extends App {
   def printTree[A <: Action : TS](name: String) = {
@@ -68,4 +73,39 @@ object Example extends App {
         send[String].receive[Int])
     Opposite[x.Type]
   }
+
+  val akka = ActorSystem("Example")
+  implicit val defaultTimeout: Timeout = 1.second
+
+  def actors() = {
+    type ConvertNumber = ![String] :>: (?[Int] :&: ?[Exception])
+
+    class MyActor extends Actor {
+      def receive = {
+        case a: String =>
+          val result = try {
+            a.toInt
+          } catch {
+            case e: NumberFormatException => e
+          }
+          sender ! result
+      }
+    }
+    val actor: ActorRef = akka.actorOf(Props(new MyActor))
+
+    println("Converting numbers")
+    val convertNumber = actor.as[ConvertNumber]
+      .handle[Int](identity)
+      .handle[Exception](_ => -1)
+
+
+    val r1: Int = Await.result(convertNumber.send("123"), 1.second)
+    println(s"Converting 123 yields $r1")
+    val r2: Int = Await.result(convertNumber.send("a2"), 1.second)
+    println(s"Converting a2 yields $r2")
+
+  }
+  actors()
+
+  akka.shutdown()
 }

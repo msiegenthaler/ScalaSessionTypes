@@ -3,11 +3,15 @@ package sst
 import shapeless.{Coproduct, CNil, :+:}
 import scala.annotation.implicitNotFound
 
-/** Operations on coproducts. */
+/**
+ * Operations on Coproducts:
+ * - Remove (type-level only)
+ * - Contains (type-level)
+ */
 object CoproductOps {
   type I = Int :+: CNil
   type S = String :+: CNil
-  type L = String :+: CNil
+  type L = Long :+: CNil
   type SI = String :+: Int :+: CNil
   type SL = String :+: Long :+: CNil
   type IL = Int :+: Long :+: CNil
@@ -51,6 +55,42 @@ object CoproductOps {
 
     implicit def found[H, T <: Coproduct, What](implicit a: What =:= H, t: Contains[T, What]): Aux[H :+: T, What, True] = witness
     implicit def end[What]: Aux[CNil, What, False] = witness
+  }
+
+  @implicitNotFound("Cannot concat ${A} and ${B}")
+  trait Concat[A <: Coproduct, B <: Coproduct] {
+    type Out <: Coproduct
+  }
+  object Concat {
+    def apply[A <: Coproduct, B <: Coproduct](implicit c: Concat[A, B]): Concat[A, B] {type Out = c.Out} = witness
+    type Aux[A <: Coproduct, B <: Coproduct, Res <: Coproduct] = Concat[A, B] {type Out = Res}
+
+    implicit def concatCNil[A <: Coproduct]: Aux[CNil, A, A] = witness
+    implicit def concatCons[H, T <: Coproduct, R <: Coproduct](implicit nr: Concat[T, R]): Aux[H :+: T, R, H :+: nr.Out] = witness
+  }
+
+  //Tests for Concat
+  {
+    val r1 = Concat[I, CNil]
+    implicitly[I =:= r1.Out]
+
+    val r2 = Concat[SI, CNil]
+    implicitly[SI =:= r2.Out]
+
+    val r3 = Concat[CNil, I]
+    implicitly[I =:= r3.Out]
+
+    val r4 = Concat[I, L]
+    implicitly[IL =:= r4.Out]
+
+    val r5 = Concat[SI, L]
+    implicitly[SIL =:= r5.Out]
+
+    val r6 = Concat[S, IL]
+    implicitly[SIL =:= r6.Out]
+
+    val r7 = Concat[Double :+: S, IL]
+    implicitly[(Double :+: SIL) =:= r7.Out]
   }
 
   //Tests for Remove

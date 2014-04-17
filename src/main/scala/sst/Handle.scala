@@ -90,10 +90,10 @@ object Handle {
   final class Handler[On <: Coproduct, Remaining <: Coproduct, R](protected val fun: PartialFunction[On, R]) {
     def handler: On => R = on =>
       fun.lift(on).getOrElse(throw new MatchError(s"Handler did not match $on"))
-    def handle[A, B](f: A => B)(implicit r: Remove[Remaining, A], contains: Contains.Yes[Remaining, A], s: Selector[On, A]) =
+    def handle[A, B >: R](f: A => B)(implicit r: Remove[Remaining, A], contains: Contains.Yes[Remaining, A], s: Selector[On, A]) =
       Handler.compose(this, f)
     def handleTyped[A] = new AnyRef {
-      def apply[B](f: A => B)(implicit r: Remove[Remaining, A], contains: Contains.Yes[Remaining, A], s: Selector[On, A]) = handle(f)
+      def apply[B >: R](f: A => B)(implicit r: Remove[Remaining, A], contains: Contains.Yes[Remaining, A], s: Selector[On, A]) = handle(f)
     }
   }
   object Handler {

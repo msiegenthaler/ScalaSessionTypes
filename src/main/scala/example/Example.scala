@@ -77,7 +77,8 @@ object Example extends App {
   implicit val defaultTimeout: Timeout = 1.second
 
   def actors() = {
-    type ConvertNumber = ![String] :>: (?[Int] :&: ?[Exception])
+    val cn = Action.send[String].receiveAnyOf[Int, Exception]
+    type ConvertNumber = cn.Type
 
     class MyActor extends Actor {
       def receive = {

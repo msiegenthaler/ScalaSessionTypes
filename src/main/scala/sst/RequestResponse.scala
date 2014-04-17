@@ -31,7 +31,19 @@ object RequestResponse {
       type Out = A :+: B :+: CNil
       val parts = part[A] :: part[B] :: Nil
     }
-    //TODO more than 2 options
+    implicit def receive3[A: ClassTag : Typeable, B: ClassTag : Typeable, C: ClassTag : Typeable] = {
+      new Response[AnyOf[Receive[A], AnyOf[Receive[B], Receive[C]]]] {
+        type Out = A :+: B :+: C :+: CNil
+        val parts = part[A] :: part[B] :: part[C] :: Nil
+      }
+    }
+    implicit def receive4[A: ClassTag : Typeable, B: ClassTag : Typeable, C: ClassTag : Typeable, D: ClassTag : Typeable] = {
+      new Response[AnyOf[Receive[A], AnyOf[Receive[B], AnyOf[Receive[C], Receive[D]]]]] {
+        type Out = A :+: B :+: C :+: D :+: CNil
+        val parts = part[A] :: part[B] :: part[C] :: part[D] :: Nil
+      }
+    }
+    //TODO more than 4 options
   }
 
   @implicitNotFound("Not a request/response: ${A}")

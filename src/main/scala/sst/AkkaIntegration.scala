@@ -6,8 +6,9 @@ import akka.actor.ActorRef
 import akka.util.Timeout
 import akka.pattern.ask
 import shapeless._
-import Handle._
 import shapeless.ops.coproduct.Selector
+import Handle._
+import CoproductOps._
 
 /**
  * Enables usage of akka actors with session typed interaction.

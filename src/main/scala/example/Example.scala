@@ -47,6 +47,57 @@ object Example extends App {
   }
 
   {
+    type client = ![String] :>: (?[Int] :&: ?[String] :&: ?[Exception])
+    type server = ?[String] :>: (![Int] :@: ![String] :@: ![Exception])
+    Opposite.is[client, server]
+    val opC = Opposite[client]
+    val opS = Opposite[server]
+    implicitly[server =:= opC.Out]
+    printTree[client]("send/receive with 3 elements")
+    println(RequestResponse[client].description)
+    println(RequestResponse[opS.Out].description)
+  }
+
+  {
+    type client = ![String] :>: (?[Int] :&: ?[Long] :&: ?[String] :&: ?[Exception])
+    type server = ?[String] :>: (![Int] :@: ![Long] :@: ![String] :@: ![Exception])
+    Opposite.is[client, server]
+    val opC = Opposite[client]
+    val opS = Opposite[server]
+    implicitly[server =:= opC.Out]
+    printTree[client]("send/receive with 4 elements")
+    println(RequestResponse[client].description)
+    println(RequestResponse[opS.Out].description)
+  }
+
+  {
+    type client = ![String] :>: (((?[Int] :&: ?[Long]) :&: ?[String]) :&: ?[Exception])
+    type server = ?[String] :>: (((![Int] :@: ![Long]) :@: ![String]) :@: ![Exception])
+    Opposite.is[client, server]
+    val opC = Opposite[client]
+    val opS = Opposite[server]
+    implicitly[server =:= opC.Out]
+    printTree[client]("send/receive with 4 elements left-bound")
+    println(RequestResponse[client].description)
+    println(RequestResponse[opS.Out].description)
+  }
+
+  /*
+  //Not yet supported
+  {
+    type client = ![String] :>: ((?[Int] :&: ?[Long]) :&: (?[String] :&: ?[Exception]))
+    type server = ?[String] :>: ((![Int] :@: ![Long]) :@: (![String] :@: ![Exception]))
+    Opposite.is[client, server]
+    val opC = Opposite[client]
+    val opS = Opposite[server]
+    implicitly[server =:= opC.Out]
+    printTree[client]("send/receive with 4 elements grouped")
+    println(RequestResponse[client].description)
+    println(RequestResponse[opS.Out].description)
+  }
+  */
+
+  {
     type client = Repeat[![String] :>: ?[Int]]
     type server = Repeat[?[String] :>: ![Int]]
     Opposite.is[client, server]

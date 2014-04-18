@@ -34,16 +34,25 @@ sealed trait Response[A <: Action] {
   def description: String = parts.map(_.tag.toString).mkString(" :+: ")
   protected type Parser = Any => Option[Out]
   protected case class Part(parser: Parser, tag: ClassTag[_])
-  protected def parts: List[Part]
+  protected[sst] def parts: List[Part]
   protected def part[X: Typeable : ClassTag](implicit i: Inject[Out, X]) = {
     val p = (value: Any) => value.cast[X] map (Coproduct[Out](_))
     Part(p, implicitly[ClassTag[X]])
   }
 }
-object Response {
+trait LowPriorityResponse {
   @implicitNotFound("Not a response: ${A}")
   type Aux[A <: Action, Out0 <: Coproduct] = Response[A] {type Out = Out0}
 
+  implicit def anyOfRight[A: ClassTag : Typeable, B <: Action](implicit br: Response[B]) = new Response[AnyOf[B, Receive[A]]] {
+    type Out = A :+: br.Out
+    val parts: List[Part] = br.parts.map { part =>
+      def parser(in: Any): Option[Out] = part.parser(in).map(Inr(_))
+      Part(parser, part.tag)
+    } :+ part[A]
+  }
+}
+object Response extends LowPriorityResponse {
   implicit def receive[A: ClassTag : Typeable] = new Response[Receive[A]] {
     type Out = A :+: CNil
     val parts = part[A] :: Nil

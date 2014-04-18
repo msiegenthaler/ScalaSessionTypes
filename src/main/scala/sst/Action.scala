@@ -44,6 +44,8 @@ trait ActionFactory {
 }
 
 class ActionOps[Self <: Action](action: Self) {
+  def asTree(implicit d: Description.TS[Self]) = Description.asTree[Self]
+
   def send[Value] = andThen(Send[Value]())
   def answer[Value] = send[Value]
   def answerEither[A, B] = answerEither2[A, B]

@@ -47,6 +47,18 @@ object Example extends App {
   }
 
   {
+    type client = Repeat[![String] :>: (?[Int] :&: ?[Exception])]
+    type server = Repeat[?[String] :>: (![Int] :@: ![Exception])]
+    Opposite.is[client, server]
+    val opC = Opposite[client]
+    val opS = Opposite[server]
+    implicitly[server =:= opC.Out]
+    printTree[client]("repeated send/receive with error handling")
+    println(RequestResponse[client].description)
+    println(RequestResponse[opS.Out].description)
+  }
+
+  {
     type client = ![String] :>: (?[Int] :&: ?[String] :&: ?[Exception])
     type server = ?[String] :>: (![Int] :@: ![String] :@: ![Exception])
     Opposite.is[client, server]

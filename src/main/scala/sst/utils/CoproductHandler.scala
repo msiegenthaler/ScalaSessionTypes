@@ -46,5 +46,5 @@ object CoproductHandler {
 @implicitNotFound("Cannot run handler, unhandled cases left: ${Remaining}")
 sealed trait CoproductHandlerIsRunnable[Remaining <: Coproduct]
 object CoproductHandlerIsRunnable {
-  implicit def emptyIsRunnable: CoproductHandlerIsRunnable[CNil] = null.asInstanceOf
+  implicit def emptyIsRunnable: CoproductHandlerIsRunnable[CNil] = witness
 }

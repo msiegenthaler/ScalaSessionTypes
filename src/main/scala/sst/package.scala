@@ -9,6 +9,4 @@ package object sst extends ActionFactory {
   type :&:[A <: Action, B <: Action] = AnyOf[A, B]
   type :@:[A <: Action, B <: Action] = Choice[A, B]
   type :| = Break
-
-  private[sst] def witness[A]: A = null.asInstanceOf[A]
 }

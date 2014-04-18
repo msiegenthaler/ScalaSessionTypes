@@ -2,6 +2,7 @@ package sst
 
 import shapeless._
 import scala.annotation.implicitNotFound
+import sst.utils.witness
 
 object Opposites {
   @implicitNotFound("No opposite: ${A}")

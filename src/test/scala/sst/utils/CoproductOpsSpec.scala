@@ -64,8 +64,23 @@ class CoproductOpsSpec extends Specification {
       implicitly[True =:= r.Out]
       assertCompiled
     }
-    "be False in [SI, Long" in {
+    "be False in [SI, Long]" in {
       val r = Contains[SI, Long]
+      implicitly[False =:= r.Out]
+      assertCompiled
+    }
+    "be True for [S, String]" in {
+      val r = Contains[S, String]
+      implicitly[True =:= r.Out]
+      assertCompiled
+    }
+    "be True in [I, Int]" in {
+      val r = Contains[I, Int]
+      implicitly[True =:= r.Out]
+      assertCompiled
+    }
+    "be False in [S, Int]" in {
+      val r = Contains[S, Long]
       implicitly[False =:= r.Out]
       assertCompiled
     }

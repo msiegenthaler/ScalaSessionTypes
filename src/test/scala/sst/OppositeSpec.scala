@@ -1,10 +1,9 @@
 package sst
 
 import org.specs2.mutable._
-import sst.Opposites.Opposite
 import shapeless.test.illTyped
 
-class OppositesSpec extends Specification {
+class OppositeSpec extends Specification {
   private def assertCompiled = true must beTrue
 
   "Opposite[]" should {

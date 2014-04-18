@@ -7,7 +7,7 @@ import scala.concurrent.duration._
 import akka.actor._
 import akka.util.Timeout
 import sst._
-import sst.TreeSerialization._
+import sst.Description._
 import sst.Opposites._
 import sst.akka._
 
@@ -15,7 +15,7 @@ object Example extends App {
   def printTree[A <: Action : TS](name: String) = {
     println()
     println(s"*** $name ***")
-    println(TreeSerialization[A])
+    println(Description.asTree[A])
   }
 
   {

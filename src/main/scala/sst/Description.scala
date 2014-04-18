@@ -3,8 +3,8 @@ package sst
 import scala.reflect._
 
 
-object TreeSerialization {
-  def apply[A <: Action : TS] = implicitly[TS[A]].serialize.mkString("\n")
+object Description {
+  def asTree[A <: Action : TS] = implicitly[TS[A]].serialize.mkString("\n")
 
   sealed trait TS[-A <: Action] {
     def serialize: Seq[String]

@@ -1,4 +1,4 @@
-package sst
+package sst.utils
 
 import scala.language.reflectiveCalls
 import scala.annotation.implicitNotFound
@@ -46,5 +46,5 @@ object CoproductHandler {
 @implicitNotFound("Cannot run handler, unhandled cases left: ${Remaining}")
 sealed trait CoproductHandlerIsRunnable[Remaining <: Coproduct]
 object CoproductHandlerIsRunnable {
-  implicit def emptyIsRunnable: CoproductHandlerIsRunnable[CNil] = witness
+  implicit def emptyIsRunnable: CoproductHandlerIsRunnable[CNil] = null.asInstanceOf
 }

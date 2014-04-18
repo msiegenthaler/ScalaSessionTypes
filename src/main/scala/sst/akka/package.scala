@@ -3,6 +3,7 @@ package sst
 import _root_.akka.actor._
 import scala.concurrent.ExecutionContext
 import shapeless.Coproduct
+import sst.utils.CoproductHandlerIsRunnable
 
 /**
  * Enables usage of akka actors with session typed interaction.

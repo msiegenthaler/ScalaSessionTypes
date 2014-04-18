@@ -6,7 +6,8 @@ import akka.util.Timeout
 import akka.pattern.ask
 import shapeless.Coproduct
 import shapeless.ops.coproduct.Selector
-import sst.{CoproductHandler, RequestResponse, Action}
+import sst.{RequestResponse, Action}
+import sst.utils.CoproductHandler
 import sst.utils.CoproductOps._
 
 /**

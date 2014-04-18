@@ -6,7 +6,7 @@ import akka.util.Timeout
 import akka.pattern.ask
 import shapeless.Coproduct
 import shapeless.ops.coproduct.Selector
-import sst.{Handler, RequestResponse, Action}
+import sst.{CoproductHandler, RequestResponse, Action}
 import sst.utils.CoproductOps._
 
 /**
@@ -25,9 +25,9 @@ final class AskHandler(val actor: ActorRef) {
   def ask[A <: Action](implicit rr: RequestResponse[A]) = new RRContainer[A, rr.Request, rr.Response](rr).initial
 
   final class RRContainer[A <: Action, Request, Response <: Coproduct] private[AskHandler](rr: RequestResponse[A]) {
-    private[AskHandler] def initial = new ResponseHandler[Response, Nothing](Handler[Response])
+    private[AskHandler] def initial = new ResponseHandler[Response, Nothing](CoproductHandler[Response])
 
-    final class ResponseHandler[Remaining <: Coproduct, R] private[RRContainer](handler: Handler[Response, Remaining, R])
+    final class ResponseHandler[Remaining <: Coproduct, R] private[RRContainer](handler: CoproductHandler[Response, Remaining, R])
       extends ActorRefResponseHandler[Request, Response, Remaining, R] {
       def handle[A] = new AnyRef {
         def apply[B >: R](f: A => B)(implicit r: Remove[Remaining, A], contains: Contains.Yes[Remaining, A], s: Selector[Response, A]) = {

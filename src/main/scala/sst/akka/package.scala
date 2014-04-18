@@ -16,7 +16,7 @@ package object akka {
   /** Add send on completed AskHandler. */
   implicit def runnableHandlerActor[Req, Resp <: Coproduct, Rem <: Coproduct, R]
     (rh: ActorRefResponseHandler[Req, Resp, Rem, R])
-    (implicit w: HandlerIsRunnable[Rem], exec: ExecutionContext): RunnableHandlerActor[Req, R] = {
+    (implicit w: CoproductHandlerIsRunnable[Rem], exec: ExecutionContext): RunnableHandlerActor[Req, R] = {
     new RunnableHandlerActor(rh.actor, rh.handle, exec)
   }
 

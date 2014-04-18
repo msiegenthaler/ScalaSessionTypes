@@ -1,7 +1,8 @@
-package sst
+package sst.utils
 
 import shapeless.{Coproduct, CNil, :+:}
 import scala.annotation.implicitNotFound
+import sst._
 
 /**
  * Operations on Coproducts:

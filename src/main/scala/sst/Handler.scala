@@ -4,8 +4,7 @@ import scala.language.reflectiveCalls
 import scala.annotation.implicitNotFound
 import shapeless._
 import shapeless.ops.coproduct._
-import sst.CoproductOps._
-
+import sst.utils.CoproductOps._
 
 /**
  * Handle each type in a Coproduct with a separate handler and then provide a combined handler function. The

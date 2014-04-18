@@ -9,7 +9,7 @@ import akka.util.Timeout
 import sst._
 import sst.TreeSerialization._
 import sst.Opposites._
-import sst.AkkaIntegration._
+import sst.akka._
 
 object Example extends App {
   def printTree[A <: Action : TS](name: String) = {
@@ -157,7 +157,7 @@ object Example extends App {
     val actor: ActorRef = akka.actorOf(Props(new MyActor))
 
     println("Converting numbers")
-    val convertNumber = actor.as[ConvertNumber]
+    val convertNumber = actor.ask[ConvertNumber]
       .handle[Int](identity)
       .handle[Exception](_ => -1)
 

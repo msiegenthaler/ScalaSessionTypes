@@ -8,7 +8,6 @@ import akka.actor._
 import akka.util.Timeout
 import sst._
 import sst.Description._
-import sst.Opposites._
 import sst.akka._
 
 object Example extends App {

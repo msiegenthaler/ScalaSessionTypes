@@ -34,11 +34,8 @@ object CoproductOps {
     implicit def found[H, T <: Coproduct, What](implicit a: What =:= H): Aux[H :+: T, What, T] = witness
   }
 
-  sealed trait Bool
-  sealed trait True extends Bool
-  sealed trait False extends Bool
-  sealed trait Maybe extends Bool
 
+  /** Check if a type is contained in a Coproduct (typelevel only). */
   trait Contains[In <: Coproduct, What] {
     type Out <: Bool
   }

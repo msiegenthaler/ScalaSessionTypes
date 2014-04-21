@@ -12,7 +12,7 @@ import shapeless.ops.coproduct.Inject
 sealed trait Response[A <: Action] {
   type Out <: Coproduct
   def parse(value: Any): Option[Out] = parts.view.flatMap(_.parser(value)).headOption
-  def description: String = parts.map(_.tag.toString).mkString(" :+: ")
+  def description: String = parts.map(_.tag.toString).mkString(" or ")
   protected type Parser = Any => Option[Out]
   protected case class Part(parser: Parser, tag: ClassTag[_])
   protected[sst] def parts: List[Part]

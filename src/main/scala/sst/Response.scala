@@ -7,7 +7,8 @@ import shapeless._
 import shapeless.syntax.typeable._
 import shapeless.ops.coproduct.Inject
 
-/** Parses AnyOf[Receive[X], Y, Z] structures into a coproduct (X +:+ Y +:+ Z). */
+/** Parses AnyOf[Receive[X], Y, Z] structures into a coproduct (X +:+ Y +:+ Z) in Response[T].Out. */
+@implicitNotFound("Not a response: ${A}")
 sealed trait Response[A <: Action] {
   type Out <: Coproduct
   def parse(value: Any): Option[Out] = parts.view.flatMap(_.parser(value)).headOption
@@ -20,7 +21,7 @@ sealed trait Response[A <: Action] {
     Part(p, implicitly[ClassTag[X]])
   }
 }
-trait LowPriorityResponse {
+sealed trait LowPriorityResponse {
   @implicitNotFound("Not a response: ${A}")
   type Aux[A <: Action, Out0 <: Coproduct] = Response[A] {type Out = Out0}
 
@@ -33,6 +34,8 @@ trait LowPriorityResponse {
   }
 }
 object Response extends LowPriorityResponse {
+  def apply[A <: Action](implicit r: Response[A]): Aux[A, r.Out] = r
+
   implicit def receive[A: ClassTag : Typeable] = new Response[Receive[A]] {
     type Out = A :+: CNil
     val parts = part[A] :: Nil

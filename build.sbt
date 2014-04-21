@@ -7,4 +7,7 @@ libraryDependencies += "com.chuusai" % "shapeless" % "2.0.0" cross CrossVersion.
 
 libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.3.2"
 
+
 libraryDependencies += "org.specs2" %% "specs2" % "2.3.10" % "test"
+
+libraryDependencies += "com.typesafe.akka" %% "akka-testkit" % "2.3.2" % "test"

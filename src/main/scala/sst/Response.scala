@@ -7,6 +7,7 @@ import shapeless._
 import shapeless.syntax.typeable._
 import shapeless.ops.coproduct.Inject
 
+/** Parses AnyOf[Receive[X], Y, Z] structures into a coproduct (X +:+ Y +:+ Z). */
 sealed trait Response[A <: Action] {
   type Out <: Coproduct
   def parse(value: Any): Option[Out] = parts.view.flatMap(_.parser(value)).headOption

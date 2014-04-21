@@ -37,6 +37,7 @@ case class Break() extends Action {
 
 trait ActionFactory {
   def send[Value]: Send[Value] = Send()
+  def answer[Value] = send[Value]
   def receive[Value]: Receive[Value] = Receive()
   def anyOf[A <: Action, B <: Action](a: A, b: B): AnyOf[A, B] = AnyOf(a, b)
   def choose[A <: Action, B <: Action](a: A, b: B): Choice[A, B] = Choice(a, b)

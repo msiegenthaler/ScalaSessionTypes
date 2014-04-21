@@ -1,5 +1,6 @@
 package sst
 
+import scala.language.implicitConversions
 import _root_.akka.actor._
 import scala.concurrent.ExecutionContext
 import shapeless.Coproduct

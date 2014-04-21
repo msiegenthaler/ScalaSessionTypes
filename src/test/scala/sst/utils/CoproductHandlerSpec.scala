@@ -1,5 +1,6 @@
 package sst.utils
 
+import scala.language.reflectiveCalls
 import org.specs2.mutable._
 import shapeless._
 import shapeless.test.illTyped

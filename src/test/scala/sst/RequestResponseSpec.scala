@@ -39,4 +39,12 @@ class RequestResponseSpec extends Specification {
     }
   }
 
+  "RequestResponse.description" should {
+    "be 'java.lang.String => Int' for ![String] :>: ?[Int]" in {
+      RequestResponse[![String] :>: ?[Int]].description must_== "java.lang.String => Int"
+    }
+    "be 'java.lang.String => Int or Long' for ![String] :>: (?[Int] :&: ?[Long])" in {
+      RequestResponse[![String] :>: (?[Int] :&: ?[Long])].description must_== "java.lang.String => Int or Long"
+    }
+  }
 }

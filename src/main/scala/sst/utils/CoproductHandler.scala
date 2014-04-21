@@ -41,6 +41,9 @@ object CoproductHandler {
     }
     new CoproductHandler(handler.fun orElse fun)
   }
+  def run[On <: Coproduct, Remaining <: Coproduct, R](h: CoproductHandler[On, Remaining, R], value: On)(implicit w: CoproductHandlerIsRunnable[Remaining]): R = {
+    h.handler(value)
+  }
 }
 
 @implicitNotFound("Cannot run handler, unhandled cases left: ${Remaining}")

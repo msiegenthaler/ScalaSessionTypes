@@ -35,10 +35,11 @@ class AskHandlerSpec extends Specification {
     "support handling multiple return values" in new actors {
       val probe = TestProbe()
       val nc = probe.ref.ask[safeNumberConverter.Type].
+        handle[Int](identity).
         handle[String] { msg =>
-        assert(msg == "not a number");
+        assert(msg == "not a number")
         -1
-      }.handle[Int](identity)
+      }
 
       val f1 = nc.send("x1")
       probe.expectMsg("x1")

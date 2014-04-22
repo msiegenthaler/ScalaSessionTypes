@@ -1,9 +1,12 @@
 package sst
 
 import scala.language.implicitConversions
+import scala.annotation.implicitNotFound
 import shapeless._
 import scala.reflect.ClassTag
 
+/** Parses send > repeat(anyOf(receive*)) structures into a setup type and a notification message (coproduct) type. */
+@implicitNotFound("Not a subscription: ${A}")
 sealed trait Subscription[A <: Action] {
   type Setup
   type Message <: Coproduct

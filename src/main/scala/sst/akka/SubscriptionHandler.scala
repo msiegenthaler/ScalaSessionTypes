@@ -7,6 +7,22 @@ import shapeless.Coproduct
 import sst.utils.CoproductOps.{Contains, Remove}
 import shapeless.ops.coproduct.Selector
 
+/**
+ * Subscription pattern for session types.
+ *
+ * Usage syntax where IntSource is a subscription session type:
+ * <code>
+ * class MyActor(intSource: ActorRef) extends Actor {
+ * var counter = 0
+ *
+ * val nsub = ref.subscription[IntSource].handle[Int](int => counter = counter + 1)
+ * nsub.activate(intSource, SubscribeToInts)
+ *
+ * def receive = nsub.receive orElse {
+ * case name: String => println(s"Hi $name, I counted $counter ints")
+ * }
+ * <code>
+ */
 final class SubscriptionHandler(actor: ActorRef) {
   def subscription[A <: Action](implicit s: Subscription[A]) = new Container[A, s.Setup, s.Message](s).initial
 

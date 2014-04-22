@@ -28,8 +28,7 @@ sealed trait LowPriorityResponse {
   implicit def anyOfRight[A: ClassTag : Typeable, B <: Action](implicit br: Response[B]) = new Response[AnyOf[B, Receive[A]]] {
     type Out = A :+: br.Out
     val parts: List[Part] = br.parts.map { part =>
-      def parser(in: Any): Option[Out] = part.parser(in).map(Inr(_))
-      Part(parser, part.tag)
+      Part(in => part.parser(in).map(Inr(_)), part.tag)
     } :+ part[A]
   }
 }
@@ -43,8 +42,7 @@ object Response extends LowPriorityResponse {
   implicit def anyOfLeft[A: ClassTag : Typeable, B <: Action](implicit br: Response[B]) = new Response[AnyOf[Receive[A], B]] {
     type Out = A :+: br.Out
     val parts: List[Part] = part[A] :: br.parts.map { part =>
-      def parser(in: Any): Option[Out] = part.parser(in).map(Inr(_))
-      Part(parser, part.tag)
+      Part(in => part.parser(in).map(Inr(_)), part.tag)
     }
   }
 }

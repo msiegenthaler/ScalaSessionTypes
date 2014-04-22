@@ -14,12 +14,12 @@ import sst.utils.CoproductHandlerIsRunnable
  */
 package object akka {
   implicit def askHandler(actor: ActorRef): AskHandler = new AskHandler(actor)
+  implicit def subscriptionHandler(actor: ActorRef): SubscriptionHandler = new SubscriptionHandler(actor)
 
   /** Add send on completed AskHandler. */
-  implicit def runnableHandlerActor[Req, Resp <: Coproduct, Rem <: Coproduct, R]
-    (rh: ActorRefResponseHandler[Req, Resp, Rem, R])
-    (implicit w: CoproductHandlerIsRunnable[Rem], exec: ExecutionContext): RunnableHandlerActor[Req, R] = {
-    new RunnableHandlerActor(rh.actor, rh.handle, exec)
+  implicit def runnableAskHandler[Req, Resp <: Coproduct, Rem <: Coproduct, R](rh: AskResponseHandler[Req, Resp, Rem, R])
+    (implicit w: CoproductHandlerIsRunnable[Rem], exec: ExecutionContext): RunnableAskHandler[Req, R] = {
+    new RunnableAskHandler(rh.actor, rh.handle, exec)
   }
 
 }

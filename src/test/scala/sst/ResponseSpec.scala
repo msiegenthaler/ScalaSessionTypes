@@ -45,4 +45,30 @@ class ResponseSpec extends Specification {
       isOk()
     }
   }
+
+  "Response[?[String] :&: ?[Long]].parse" should {
+    val r = Response[?[String] :&: ?[Long]]
+    "return some Coproduct(\"hello\") for String hello" in {
+      r.parse("hello") must_== Some(Coproduct[String :+: Long :+: CNil]("hello"))
+    }
+    "return some Coproduct(2L) for Long 2" in {
+      r.parse(2L) must_== Some(Coproduct[String :+: Long :+: CNil](2L))
+    }
+    "be None for Ints" in {
+      r.parse(1) must beNone
+      r.parse(-1) must beNone
+    }
+  }
+
+  "Response.description" should {
+    "be 'java.lang.String' for ?[String]" in {
+      Response[?[String]].description must_== "java.lang.String"
+    }
+    "be 'String or Int' for ?[String] :&: ?[Int]" in {
+      Response[?[String] :&: ?[Int]].description must_== "java.lang.String or Int"
+    }
+    "be 'String or Int or Long' for ?[String] :&: ?[Int] :&: ?[Long]" in {
+      Response[?[String] :&: ?[Int] :&: ?[Long]].description must_== "java.lang.String or Int or Long"
+    }
+  }
 }

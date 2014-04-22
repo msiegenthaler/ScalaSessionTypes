@@ -15,8 +15,8 @@ import shapeless.ops.coproduct.Selector
  * class MyActor(intSource: ActorRef) extends Actor {
  * var counter = 0
  *
- * val nsub = ref.subscription[IntSource].handle[Int](int => counter = counter + 1)
- * nsub.activate(intSource, SubscribeToInts)
+ * val nsub = intSource.subscription[IntSource].handle[Int](int => counter = counter + 1)
+ * nsub.activate(SubscribeToInts)
  *
  * def receive = nsub.receive orElse {
  * case name: String => println(s"Hi $name, I counted $counter ints")
@@ -43,7 +43,7 @@ final class SubscriptionHandler(actor: ActorRef) {
         ()
       }
 
-      def activate(subscriber: ActorRef, setupMsg: Setup)(implicit r: CoproductHandlerIsRunnable[Remaining]): Unit =
+      def activate(setupMsg: Setup)(implicit subscriber: ActorRef, r: CoproductHandlerIsRunnable[Remaining]): Unit =
         actor.!(setupMsg)(subscriber)
     }
   }

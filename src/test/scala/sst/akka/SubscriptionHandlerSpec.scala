@@ -26,7 +26,7 @@ class SubscriptionHandlerSpec extends Specification {
       val subscriber = system actorOf Props(new Actor {
         val subscription = probe.ref.subscription[PingSubscription].
           handle[PingNotification](n => checker.ref ! s"ping ${n.count} received")
-        subscription.activate(context.self, SubscribePing)
+        subscription.activate(SubscribePing)
         override def receive = subscription.receive
       })
       probe.expectMsg(SubscribePing)
@@ -45,7 +45,7 @@ class SubscriptionHandlerSpec extends Specification {
         val subscription = probe.ref.subscription[IntStringSubscription]
           .handle[String](s => checker.ref ! s"Got a string: $s")
           .handle[Int](i => checker.ref ! s"Got an Int: $i")
-        subscription.activate(context.self, SubscribeIntString)
+        subscription.activate(SubscribeIntString)
         override def receive = subscription.receive
       })
       probe.expectMsg(SubscribeIntString)

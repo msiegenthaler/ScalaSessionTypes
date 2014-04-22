@@ -8,7 +8,7 @@ import org.specs2.specification.Context
 import sst._
 
 class SubscriptionHandlerSpec extends Specification {
-  abstract class actors extends TestKit(ActorSystem("AskHandlerSpec")) with Context with After {
+  abstract class actors extends TestKit(ActorSystem("SubscriptionHandlerSpec")) with Context with After {
     override def after = system.shutdown()
   }
 

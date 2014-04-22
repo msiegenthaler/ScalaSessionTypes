@@ -1,5 +1,6 @@
 package sst.akka
 
+import scala.language.reflectiveCalls
 import akka.actor._
 import akka.testkit.{TestProbe, TestKit}
 import org.specs2.mutable._
@@ -13,17 +14,17 @@ class SubscriptionHandlerSpec extends Specification {
 
   case object SubscribePing
   case class PingNotification(count: Int)
-  type PingNotification = ![SubscribePing.type] :>: Repeat[?[PingNotification]]
+  type PingSubscription = ![SubscribePing.type] :>: Repeat[?[PingNotification]]
 
   "SubscriptionHandler" should {
     "support subscriptions with one option in a nice and fluent interface" in new actors {
       val probe = TestProbe()
       val checker = TestProbe()
       val subscriber = system actorOf Props(new Actor {
-        val subscription = probe.ref.subscription[PingNotification].
+        val subscription = probe.ref.subscription[PingSubscription].
           handle[PingNotification](n => checker.ref ! s"ping ${n.count} received")
         subscription.activate(context.self, SubscribePing)
-        override def receive = subscription.handler
+        override def receive = subscription.receive
       })
       probe.expectMsg(SubscribePing)
 

@@ -14,6 +14,7 @@ import sst.utils.CoproductHandlerIsRunnable
  */
 package object akka {
   implicit def askHandler(actor: ActorRef): AskHandler = new AskHandler(actor)
+  implicit def subscriptionHandler(actor: ActorRef): SubscriptionHandler = new SubscriptionHandler(actor)
 
   /** Add send on completed AskHandler. */
   implicit def runnableHandlerActor[Req, Resp <: Coproduct, Rem <: Coproduct, R]

@@ -16,6 +16,9 @@ class SubscriptionHandlerSpec extends Specification {
   case class PingNotification(count: Int)
   type PingSubscription = ![SubscribePing.type] :>: Repeat[?[PingNotification]]
 
+  case object SubscribeIntString
+  type IntStringSubscription = ![SubscribeIntString.type] :>: Repeat[?[Int] :&: ?[String]]
+
   "SubscriptionHandler" should {
     "support subscriptions with one option in a nice and fluent interface" in new actors {
       val probe = TestProbe()
@@ -35,10 +38,27 @@ class SubscriptionHandlerSpec extends Specification {
       checker.expectMsg("ping 2 received")
     }
 
+    "support more than one message type" in new actors {
+      val probe = TestProbe()
+      val checker = TestProbe()
+      val subscriber = system actorOf Props(new Actor {
+        val subscription = probe.ref.subscription[IntStringSubscription]
+          .handle[String](s => checker.ref ! s"Got a string: $s")
+          .handle[Int](i => checker.ref ! s"Got an Int: $i")
+        subscription.activate(context.self, SubscribeIntString)
+        override def receive = subscription.receive
+      })
+      probe.expectMsg(SubscribeIntString)
+
+      subscriber ! "Mario"
+      checker.expectMsg("Got a string: Mario")
+
+      subscriber ! 123
+      checker.expectMsg("Got an Int: 123")
+    }
+
     //TODO unsubscribe
 
     //TODO watch (maybe as a parameter with default value on activate)
-
-    //TODO multiple handlers (multiple types to receive)
   }
 }

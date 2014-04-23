@@ -39,8 +39,15 @@ trait ActionFactory {
   def send[Value]: Send[Value] = Send()
   def answer[Value] = send[Value]
   def receive[Value]: Receive[Value] = Receive()
-  def anyOf[A <: Action, B <: Action](a: A, b: B): AnyOf[A, B] = AnyOf(a, b)
-  def choose[A <: Action, B <: Action](a: A, b: B): Choice[A, B] = Choice(a, b)
+  def anyOf[A <: Action, B <: Action](a: A, b: B) = AnyOf(a, b)
+  def anyOf[A <: Action, B <: Action, C <: Action](a: A, b: B, c: C) = AnyOf(a, AnyOf(b, c))
+  def anyOf[A <: Action, B <: Action, C <: Action, D <: Action](a: A, b: B, c: C, d: D) =
+    AnyOf(a, AnyOf(b, AnyOf(c, d)))
+  def choose[A <: Action, B <: Action](a: A, b: B) = Choice(a, b)
+  def choose[A <: Action, B <: Action, C <: Action](a: A, b: B, c: C) = Choice(a, Choice(b, c))
+  def choose[A <: Action, B <: Action, C <: Action, D <: Action](a: A, b: B, c: C, d: D) =
+    Choice(a, Choice(b, Choice(c, d)))
+  def repeat[A <: Action](a: Action) = Repeat(a)
   def break = Break()
 }
 

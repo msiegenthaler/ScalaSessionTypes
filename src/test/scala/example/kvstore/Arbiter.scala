@@ -11,14 +11,19 @@ object Arbiter {
     receive[JoinedPrimary.type].andThen(receive[Replicas]),
     receive[JoinedSecondary.type])
 
+  val getLeader = send[GetLeader.type].receive[Option[ActorRef]]
+
   case object Join
   case object JoinedPrimary
   case object JoinedSecondary
   case class Replicas(replicas: Set[ActorRef])
+  case object GetLeader
 
-  private class ArbiterActor extends Actor {
+  private class ArbiterActor extends Actor with ActorLogging {
     var leader: Option[ActorRef] = None
     var replicas = Set.empty[ActorRef]
+
+    log.info("Started Arbiter.")
 
     def receive = {
       case Join =>
@@ -31,6 +36,9 @@ object Arbiter {
           sender ! JoinedSecondary
         }
         leader foreach (_ ! Replicas(replicas))
+
+      case GetLeader => ()
+        sender ! leader
     }
   }
 }

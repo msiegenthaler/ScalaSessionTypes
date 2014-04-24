@@ -47,5 +47,18 @@ class ActionSpec extends Specification {
       val server6 = receive[String].chooseFrom(answer[String].receive[Unit], send[Long].repeat)
       server6 must not beNull
     }
+
+    "be described by a text before the definition" in {
+      val converter = "Convert a string to a number" |> send[String].receive[Int]
+      converter.description must_== Some("Convert a string to a number")
+    }
+    "be described by action.describe" in {
+      val numberGenerator = send[Unit].repeat(receive[Int]) describe "Sends one number per second to the sender of ()"
+      numberGenerator.description must_== Some("Sends one number per second to the sender of ()")
+    }
+    "be described by text after the definition" in {
+      val adder = send[(Int,Int)].receive[Int] <| "Add two numbers"
+      adder.description must_== Some("Add two numbers")
+    }
   }
 }

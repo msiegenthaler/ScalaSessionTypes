@@ -8,7 +8,8 @@ import sst._
 object Persistence {
   def props(flaky: Boolean) = Props(classOf[Persistence], flaky)
 
-  val persist = send[Persist].receive[Persisted].repeat
+  val persist = "Persist a key/value. Acks a successful save." |>
+    send[Persist].receive[Persisted].repeat
   case class Persist(key: String, valueOption: Option[String], id: Long)
   case class Persisted(key: String, id: Long)
 

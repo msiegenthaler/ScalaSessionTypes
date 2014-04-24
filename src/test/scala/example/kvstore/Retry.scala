@@ -8,7 +8,8 @@ import sst._
 object Retry {
   def props(interval: FiniteDuration)(target: ActorRef) = Props(new RetryActor(interval, target))
 
-  def retry[A, B] = send[A].receive[B]
+  def retry[A, B] = "Sends A to target and returns the response back to the original sender." +
+    "Retries by sending A again until a response is received." |> send[A].receive[B]
 
   private class RetryActor(interval: FiniteDuration, target: ActorRef) extends Actor {
     override def receive = {

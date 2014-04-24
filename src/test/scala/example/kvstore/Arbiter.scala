@@ -7,11 +7,13 @@ import sst._
 object Arbiter {
   def props = Props(new ArbiterActor)
 
-  val join = send[Join.type].anyOf(
-    receive[JoinedPrimary.type].andThen(receive[Replicas]),
-    receive[JoinedSecondary.type])
+  val join = "Join the kv-store and receive the assigned role (leader vs replica)" |>
+    send[Join.type].anyOf(
+      receive[JoinedPrimary.type].andThen(receive[Replicas]),
+      receive[JoinedSecondary.type])
 
-  val getLeader = send[GetLeader.type].receive[Option[ActorRef]]
+  val getLeader = "Get the current leader of the kv-store" |>
+    send[GetLeader.type].receive[Option[ActorRef]]
 
   case object Join
   case object JoinedPrimary

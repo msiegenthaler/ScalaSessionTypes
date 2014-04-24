@@ -10,8 +10,10 @@ object AckManager {
     Props(new AckManagerActor(timeout, onOk, onFailure))
   }
 
-  val input = send[Forward].repeat.
-    send[InputCompleted.type]
+  val input = """|Forwards messages (to ! msg) and keeps track of acks. As soon as InputCompleted and all acks are
+                 |received then onOk is called. If not all acks are received within timeout (after InputCompleted)
+                 |then onFailure is called.""".stripMargin |>
+    repeat(send[Forward]).send[InputCompleted.type]
   case class Forward(to: ActorRef, msg: Any)
   case object InputCompleted
 

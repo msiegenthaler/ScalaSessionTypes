@@ -8,11 +8,13 @@ import sst._
 object Replicator {
   def props(replica: ActorRef) = Props(new Replicator(replica))
 
-  val replicate = send[Replicate].receive[Replicated].repeat
+  val replicate = "Replicate the key/value to the replica and confirm successful replication" |>
+      send[Replicate].receive[Replicated].repeat
   case class Replicate(key: String, valueOption: Option[String], id: Long)
   case class Replicated(key: String, id: Long)
 
-  val getSnapshot = receive[Snapshot].send[SnapshotAck].repeat
+  val getSnapshot = "Snapshot is sent to the replica, replica needs to ack" |>
+    receive[Snapshot].send[SnapshotAck].repeat
   case class Snapshot(key: String, valueOption: Option[String], seq: Long)
   case class SnapshotAck(key: String, seq: Long)
 

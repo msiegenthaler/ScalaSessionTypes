@@ -2,36 +2,45 @@ package sst
 
 sealed trait Action {
   type Type <: Action
+  def description: Option[String]
+  def describe(desc: String): Type
 }
 object Action extends ActionFactory
 
 /** Send a message of type Value. */
-case class Send[Value]() extends Action {
+case class Send[Value](description: Option[String] = None) extends Action {
   type Type = Send[Value]
+  def describe(desc: String) = copy(description = Some(desc))
 }
 /** Receive a message of type Value. */
-case class Receive[Value]() extends Action {
+case class Receive[Value](description: Option[String] = None) extends Action {
   type Type = Receive[Value]
+  def describe(desc: String) = copy(description = Some(desc))
 }
 /** Internal Choice. */
-case class Choice[A <: Action, B <: Action](a: A, b: B) extends Action {
+case class Choice[A <: Action, B <: Action](a: A, b: B, description: Option[String] = None) extends Action {
   type Type = Choice[A, B]
+  def describe(desc: String) = copy(description = Some(desc))
 }
 /** External Choice. */
-case class AnyOf[A <: Action, B <: Action](a: A, b: B) extends Action {
+case class AnyOf[A <: Action, B <: Action](a: A, b: B, description: Option[String] = None) extends Action {
   type Type = AnyOf[A, B]
+  def describe(desc: String) = copy(description = Some(desc))
 }
 /** Sequence: A then B. */
-case class Then[A <: Action, Next <: Action](action: A, next: Next) extends Action {
+case class Then[A <: Action, Next <: Action](action: A, next: Next, description: Option[String] = None) extends Action {
   type Type = Then[A, Next]
+  def describe(desc: String) = copy(description = Some(desc))
 }
 /** Performs A until Break is encountered. */
-case class Repeat[A <: Action](a: Action) extends Action {
+case class Repeat[A <: Action](a: Action, description: Option[String] = None) extends Action {
   type Type = Repeat[A]
+  def describe(desc: String) = copy(description = Some(desc))
 }
 /** Exits the parent loop. */
-case class Break() extends Action {
+case class Break(description: Option[String] = None) extends Action {
   type Type = Break
+  def describe(desc: String) = copy(description = Some(desc))
 }
 
 
@@ -80,6 +89,9 @@ class ActionOps[Self <: Action](action: Self) {
   def :&:[A <: Action](a: A): AnyOf[A, Self] = AnyOf(a, action)
   def :@:[A <: Action](a: A): Choice[A, Self] = Choice(a, action)
   def repeat: Repeat[Self] = Repeat(action)
+  def repeat[A <: Action](action: A) = andThen(Repeat(action))
   def break = andThen(Break())
+
+  def <|(desc: String): Self = action.describe(desc).asInstanceOf[Self]
 }
 

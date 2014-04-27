@@ -32,25 +32,6 @@ class CoproductFoldSpec extends Specification {
       illTyped("h2(sSI)")
       val h3 = h2.fold[Int](_ => 2)
       h3(sSI) must_== 1
-      val f = h3.fun
-      f(sSI) must_== 1
-    }
-    "not allow apply before all types are handled" in {
-      val h = CoproductFold[SI]
-      illTyped("h(sSI)")
-      val h2 = h.fold[String](_ => 1)
-      illTyped("h2(sSI)")
-      val h3 = h2.fold[Int](_ => 2)
-      h3(sSI) must_== 1
-    }
-    "not provide a fun before all types are handled" in {
-      val h = CoproductFold[SI]
-      illTyped("h.fun")
-      val h2 = h.fold[String](_ => 1)
-      illTyped("h.fun")
-      val h3 = h2.fold[Int](_ => 2)
-      val f = h3.fun
-      f(sSI) must_== 1
     }
   }
 }

@@ -1,66 +1,88 @@
 package sst.utils
 
+import scala.language.implicitConversions
 import scala.annotation.implicitNotFound
 import shapeless._
 import shapeless.ops.coproduct._
 import sst.utils.CoproductOps._
 import sst.utils.CoproductOps.Contains.Yes
 
+
 /**
  * Handle each type in a Coproduct with a separate handler and then provide a combined function. The
  * fold function is only available if all types are handled (compile time checked). It is also checked at
  * the compile time that all handled types are actually possible.
- * Example (will return a function:
+ * Example:
  * <code>
  * CoproductFold[Int :+: String :+: CNil].fold[String](_ => 1).fold[Int](_ => 2)(value)
- * CoproductFold[Int :+: String :+: CNil].fold[String](_ => 1).fold[Int](_ => 2).fun
  * </code>
  * Examples that do not compile:
  * <code>
- * CoproductFold[Int :+: String :+: CNil].fold[String].fun
- * CoproductFold[Int :+: String :+: CNil].fold[String](_ => 1).fold[Int](_ => 2).fold[Long](_ => 3).fun
+ * CoproductFold[Int :+: String :+: CNil].fold[String]
+ * CoproductFold[Int :+: String :+: CNil].fold[String](_ => 1).fold[Int](_ => 2).fold[Long](_ => 3)
  * </code>
  */
-sealed class CoproductFold[On <: Coproduct, Remaining <: Coproduct, R](protected val partialFun: PartialFunction[On, R]) {
-  def apply(on: On)(implicit w: CoproductFoldIsComplete[Remaining]): R = fun(implicitly)(on)
+sealed trait CoproductFold[On <: Coproduct, Remaining <: Coproduct] {
+  type Result
+  protected[utils] def foldingFun: PartialFunction[On, Result]
+}
+object CoproductFold extends CoproductFoldLowPriority {
+  def apply[On <: Coproduct]: Aux[On, On, Nothing] = new CoproductFold[On, On] {
+    type Result = Nothing
+    val foldingFun = PartialFunction.empty
+  }
 
-  /** Use if a function reference is needed. */
-  def fun(implicit w: CoproductFoldIsComplete[Remaining]): On => R = on =>
-    partialFun.lift(on).getOrElse(throw new MatchError(s"Handler did not match $on"))
+  implicit def complete[On <: Coproduct, Last](c: CoproductFold[On, Last :+: CNil]): CoproductFoldLast[On, Last :+: CNil] = {
+    new CoproductFoldLast[On, Last :+: CNil] {
+      type Result = c.Result
+      def foldingFun = c.foldingFun
+    }
+  }
+}
+trait CoproductFoldLowPriority {
+  type Aux[O <: Coproduct, Rem <: Coproduct, R] = CoproductFold[O, Rem] {type Result = R}
+  type AuxIncomplete[O <: Coproduct, Rem <: Coproduct, R] = CoproductFoldMore[O, Rem] {type Result = R}
 
+  implicit def incomplete[On <: Coproduct, Remaining <: Coproduct](c: CoproductFold[On, Remaining]): CoproductFoldMore[On, Remaining] = {
+    new CoproductFoldMore[On, Remaining] {
+      type Result = c.Result
+      def foldingFun = c.foldingFun
+    }
+  }
 
-  def fold[A]: CoproductFoldFun[A, On, Remaining, R] = new CoproductFoldFun[A, On, Remaining, R] {
-    def apply[B >: R](f: (A) => B)(implicit r: Remove[Remaining, A], contains: Yes[Remaining, A], s: Selector[On, A]) = {
-      def f2 = new PartialFunction[On, B] {
-        def isDefinedAt(x: On) = s(x).isDefined
-        def apply(x: On) = f(s(x).get)
+  sealed trait CoproductFoldMore[On <: Coproduct, Remaining <: Coproduct] {
+    type Result
+    protected def foldingFun: PartialFunction[On, Result]
+
+    def fold[A] = new Fun[A]
+    final class Fun[A] {
+      def apply[B >: Result](f: A => B)(implicit r: Remove[Remaining, A], contains: Yes[Remaining, A], s: Selector[On, A]): Aux[On, r.Out, B] = {
+        val f2 = new PartialFunction[On, B] {
+          def isDefinedAt(x: On) = s(x).isDefined
+          def apply(x: On) = f(s(x).get)
+        }
+        val fun = foldingFun orElse f2
+        new CoproductFold[On, r.Out] {
+          type Result = B
+          val foldingFun = fun
+        }
       }
-      new CoproductFold(partialFun orElse f2)
     }
   }
-}
-object CoproductFold {
-  def apply[On <: Coproduct]: CoproductFold[On, On, Nothing] = new CoproductFold(PartialFunction.empty)
+  sealed trait CoproductFoldLast[On <: Coproduct, Remaining <: Coproduct] {
+    type Result
+    protected def foldingFun: PartialFunction[On, Result]
 
-  private def compose[On <: Coproduct, Remaining <: Coproduct, B1, A, B >: B1]
-  (handler: CoproductFold[On, Remaining, B1], f: A => B)
-    (implicit r: Remove[Remaining, A], contains: Contains.Yes[Remaining, A], s: Selector[On, A]): CoproductFold[On, r.Out, B] = {
-
-    def fun = new PartialFunction[On, B] {
-      def isDefinedAt(x: On) = s(x).isDefined
-      def apply(x: On) = f(s(x).get)
+    def fold[A] = new Fun[A]
+    final class Fun[A] {
+      def apply[B >: Result](f: A => B)(implicit contains: Yes[Remaining, A], s: Selector[On, A]): On => B = {
+        val f2 = new PartialFunction[On, B] {
+          def isDefinedAt(x: On) = s(x).isDefined
+          def apply(x: On) = f(s(x).get)
+        }
+        val fun = foldingFun orElse f2
+        on => fun.lift(on).getOrElse(throw new MatchError(s"Handler did not match $on"))
+      }
     }
-    new CoproductFold(handler.partialFun orElse fun)
   }
-}
-
-@implicitNotFound("Fold incomplete: ${Remaining} are unhandled")
-sealed trait CoproductFoldIsComplete[Remaining <: Coproduct]
-object CoproductFoldIsComplete {
-  implicit def emptyIsComplete: CoproductFoldIsComplete[CNil] = witness
-}
-
-sealed trait CoproductFoldFun[A, On2 <: Coproduct, Remaining2 <: Coproduct, R] {
-  def apply[B2 >: R](f: A => B2)
-    (implicit r: Remove[Remaining2, A], contains: Contains.Yes[Remaining2, A], s: Selector[On2, A]): CoproductFold[On2, r.Out, B2]
 }

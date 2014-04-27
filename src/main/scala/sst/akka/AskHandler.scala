@@ -7,7 +7,7 @@ import akka.pattern.ask
 import shapeless.Coproduct
 import shapeless.ops.coproduct.Selector
 import sst.{RequestResponse, Action}
-import sst.utils.{CoproductMapperIsComplete, CoproductMapper}
+import sst.utils.{CoproductFoldIsComplete, CoproductFold}
 import sst.utils.CoproductOps._
 
 /**
@@ -26,18 +26,18 @@ final class AskHandler(val actor: ActorRef) {
   def ask[A <: Action](implicit rr: RequestResponse[A]) = new Container[A, rr.Request, rr.Response](rr).initial
 
   final class Container[A <: Action, Request, Response <: Coproduct] private[AskHandler](rr: RequestResponse[A]) {
-    private[AskHandler] def initial = new ResponseHandler[Response, Nothing](CoproductMapper[Response])
+    private[AskHandler] def initial = new ResponseHandler[Response, Nothing](CoproductFold[Response])
 
-    final class ResponseHandler[Remaining <: Coproduct, R] private[Container](handler: CoproductMapper[Response, Remaining, R])
+    final class ResponseHandler[Remaining <: Coproduct, R] private[Container](handler: CoproductFold[Response, Remaining, R])
       extends AskResponseHandler[Request, Response, Remaining, R] {
       def handle[A] = new AnyRef {
         def apply[B >: R](f: A => B)(implicit r: Remove[Remaining, A], contains: Contains.Yes[Remaining, A], s: Selector[Response, A]) = {
-          val h = handler.map(f)
+          val h = handler.fold(f)
           new ResponseHandler(h)
         }
       }
       private[akka] def actor = AskHandler.this.actor
-      private[akka] def handle(response: Any)(implicit ev: CoproductMapperIsComplete[Remaining]) = {
+      private[akka] def handle(response: Any)(implicit ev: CoproductFoldIsComplete[Remaining]) = {
         val typedResponse = rr.parse(response).
           getOrElse(throw new MatchError(s"Unexpected response (wrong type): $response")).
           asInstanceOf[Response] //this is safe, but the compiler cannot prove it
@@ -65,5 +65,5 @@ class RunnableAskHandler[Request, R](actor: ActorRef, handler: Any => R, exec: E
 /** Serves as an interface for RunnableHandlerActor. */
 private[akka] trait AskResponseHandler[Request, Response <: Coproduct, Remaining <: Coproduct, R] {
   private[akka] def actor: ActorRef
-  private[akka] def handle(response: Any)(implicit ev: CoproductMapperIsComplete[Remaining]): R
+  private[akka] def handle(response: Any)(implicit ev: CoproductFoldIsComplete[Remaining]): R
 }

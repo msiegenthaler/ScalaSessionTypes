@@ -14,30 +14,6 @@ class RequestResponseHandler[Request, Response](actor: ActorRef, mapper: Any => 
   }
 }
 
-/** Request with only one response variant. */
-trait RequestSingleResponse[A <: Action] {
-  type Request
-  type Response
-  def parse(value: Any): Option[Response]
-}
-object RequestSingleResponse {
-  type Aux[A <: Action, Req, Resp] = RequestSingleResponse[A] {
-    type Request = Req;
-    type Response = Resp
-  }
-
-  implicit def simpleRsr[Req, Resp: Typeable]: Aux[![Req] :>: ?[Resp], Req, Resp] = new RequestSingleResponse[![Req] :>: ?[Resp]] {
-    type Request = Req
-    type Response = Resp
-    def parse(value: Any) = value.cast[Resp]
-  }
-  implicit def repeatedRsr[A <: Action](implicit rsr: RequestSingleResponse[A]): Aux[Repeat[A], rsr.Request, rsr.Response] = new RequestSingleResponse[Repeat[A]] {
-    type Request = rsr.Request
-    type Response = rsr.Response
-    def parse(value: Any) = rsr.parse(value)
-  }
-}
-
 class RequestSingleResponseHandlerFactory[A <: Action, Request, Response](a: Action, rsr: RequestSingleResponse[A]) {
   def apply(actor: ActorRef): RequestResponseHandler[Request, Response] = {
     new RequestResponseHandler(actor, mapper)

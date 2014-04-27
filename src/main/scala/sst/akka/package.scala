@@ -1,12 +1,6 @@
 package sst
 
 import scala.language.implicitConversions
-import _root_.akka.actor._
-import scala.concurrent.ExecutionContext
-import shapeless._
-import shapeless.syntax.typeable._
-import sst.utils._
-import scala.annotation.implicitNotFound
 
 /**
  * Enables usage of akka actors with session typed interaction.

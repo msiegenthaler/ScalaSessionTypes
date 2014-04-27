@@ -4,6 +4,7 @@ import scala.language.existentials
 import scala.annotation.implicitNotFound
 import scala.reflect.ClassTag
 import shapeless._
+import shapeless.syntax.typeable._
 
 /** Parses send > anyOf(receive*) structures into a request type and a response (coproduct) type. */
 @implicitNotFound("Not a request/response: ${A}")
@@ -28,5 +29,30 @@ object RequestResponse {
     type Response = r.Response
     def parse(value: Any) = r.parse(value)
     def description = r.description
+  }
+}
+
+/** Request with only one response variant (send->receive). */
+@implicitNotFound("Not a request/single-response: ${A}")
+trait RequestSingleResponse[A <: Action] {
+  type Request
+  type Response
+  def parse(value: Any): Option[Response]
+}
+object RequestSingleResponse {
+  type Aux[A <: Action, Req, Resp] = RequestSingleResponse[A] {
+    type Request = Req;
+    type Response = Resp
+  }
+
+  implicit def simpleRsr[Req, Resp: Typeable]: Aux[![Req] :>: ?[Resp], Req, Resp] = new RequestSingleResponse[![Req] :>: ?[Resp]] {
+    type Request = Req
+    type Response = Resp
+    def parse(value: Any) = value.cast[Resp]
+  }
+  implicit def repeatedRsr[A <: Action](implicit rsr: RequestSingleResponse[A]): Aux[Repeat[A], rsr.Request, rsr.Response] = new RequestSingleResponse[Repeat[A]] {
+    type Request = rsr.Request
+    type Response = rsr.Response
+    def parse(value: Any) = rsr.parse(value)
   }
 }

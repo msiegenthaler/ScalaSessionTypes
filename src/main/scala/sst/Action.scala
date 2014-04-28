@@ -45,6 +45,8 @@ case class Break(description: Option[String] = None) extends Action {
 
 
 trait ActionFactory {
+  def apply[A <: Action](implicit f: InstanceFactory[A]): A = f()
+
   def send[Value]: Send[Value] = Send()
   def answer[Value] = send[Value]
   def receive[Value]: Receive[Value] = Receive()

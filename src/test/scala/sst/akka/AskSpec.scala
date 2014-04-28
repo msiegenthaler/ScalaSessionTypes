@@ -9,7 +9,9 @@ import akka.util.Timeout
 import org.specs2.mutable._
 import org.specs2.specification.Context
 import sst._
+import sst.utils._
 import sst.akka._
+import shapeless._
 
 class AskSpec extends Specification {
   abstract class actors extends TestKit(ActorSystem("AskHandlerSpec")) with Context with After {
@@ -41,23 +43,41 @@ class AskSpec extends Specification {
       valueOf(f) must_== 42
     }
 
-    "allow action(actor).map[A](...).map[B](...).ask syntax for request/response with multiple response variant" in new actors {
-      "support handling multiple return values" in new actors {
-        val probe = TestProbe()
-        val nc = safeNumberConverter(probe.ref).
-          map[Int](identity).
-          map[String] { msg => assert(msg == "not a number"); -1}
+    "allow action(actor).map(...).ask syntax for request/response with multiple response variant" in new actors {
+      val probe = TestProbe()
+      val mapIS = CoproductFold[Int :+: String :+: CNil].
+        fold[Int](identity).
+        fold[String] { msg => assert(msg == "not a number"); -1}
+      val nc = safeNumberConverter(probe.ref).map(mapIS)
 
-        val f1 = nc ask "x1"
-        probe.expectMsg("x1")
-        probe.reply("not a number")
-        valueOf(f1) must_== -1
+      val f1 = nc ask "x1"
+      probe.expectMsg("x1")
+      probe.reply("not a number")
+      valueOf(f1) must_== -1
 
-        val f2 = nc ask "123"
-        probe.expectMsg("123")
-        probe.reply(123)
-        valueOf(f2) must_== 123
-      }
+      val f2 = nc ask "123"
+      probe.expectMsg("123")
+      probe.reply(123)
+      valueOf(f2) must_== 123
+    }
+    "allow action(actor).mapCoproduct(...).ask syntax for request/response with multiple response variant" in new actors {
+      val probe = TestProbe()
+      val mapIS = CoproductFold[Int :+: String :+: CNil].
+        fold[Int](identity).
+        fold[String] { msg => assert(msg == "not a number"); -1}
+      val nc = safeNumberConverter(probe.ref).mapCoproduct(_.
+        fold[Int](identity).
+        fold[String] { msg => assert(msg == "not a number"); -1})
+
+      val f1 = nc ask "x1"
+      probe.expectMsg("x1")
+      probe.reply("not a number")
+      valueOf(f1) must_== -1
+
+      val f2 = nc ask "123"
+      probe.expectMsg("123")
+      probe.reply(123)
+      valueOf(f2) must_== 123
     }
   }
 }

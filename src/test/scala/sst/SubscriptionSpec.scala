@@ -56,4 +56,21 @@ class SubscriptionSpec extends Specification {
       Subscription[![Int] :>: Repeat[?[String] :&: ?[Long]]].description must_== "Int subscribes to java.lang.String or Long"
     }
   }
+
+  "SingleNotificationSubscription" should {
+    "be PartialFunction[Any, String] for ![Int] :>: Repeat[?[String]]" in {
+      val s = SingleNotificationSubscription[![Int] :>: Repeat[?[String]]]
+      implicitly[s.Setup =:= Int]
+      implicitly[s.Message =:= String]
+      s.parse.lift("Hi") must beSome("Hi")
+      s.parse.lift(123) must beNone
+    }
+    "be PartialFunction[Any, Int] for ![String] :>: Repeat[?[Int]]" in {
+      val s = SingleNotificationSubscription[![String] :>: Repeat[?[Int]]]
+      implicitly[s.Setup =:= String]
+      implicitly[s.Message =:= Int]
+      s.parse.lift("Hi") must beNone
+      s.parse.lift(123) must beSome(123)
+    }
+  }
 }

@@ -11,15 +11,15 @@ import Persistence._
 object Replica {
   def props(arbiter: ActorRef, persistenceProps: Props) = Props(new ReplicaActor(arbiter, persistenceProps))
 
-  val leader = anyOf(insert, remove, get).repeat
-  val replica = get.repeat
-
   val insert = "Add a key/value to the kv-store" |>
     send[Insert].receiveAnyOf[OperationAck, OperationFailed]
   val remove = "Remove the association for a key from the store" |>
     send[Remove].receiveAnyOf[OperationAck, OperationFailed]
   val get = "Receive the current value of a key" |>
     send[Get].receive[GetResult]
+
+  val leader = anyOf(insert, remove, get).repeat
+  val replica = get.repeat
 
   case class Insert(key: String, value: String, id: Long)
   case class Remove(key: String, id: Long)

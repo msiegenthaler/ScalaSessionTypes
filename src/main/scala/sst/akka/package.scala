@@ -41,4 +41,20 @@ package object akka extends akka.LowPriorityImplicits {
     new RequestSingleResponseHandler[A, rsr.Request, rsr.Response](a, rsr)
   implicit def singleNotificationSubscriptionHandler[A <: Action](a: A)(implicit sns: SingleNotificationSubscription[A]) =
     new SingleNotificationSubscriptionHandler[A, sns.Setup, sns.Message](a, sns)
+
+
+  implicit def singleRequestResponse[Req: Typeable, Resp]: Service.Aux[Then[?[Req], ![Resp]], Req, Resp] = {
+    new SingleServiceHandler[Then[?[Req], ![Resp]]] {
+      type Request = Req
+      type Response = Resp
+      val requestTypeable = implicitly[Typeable[Req]]
+    }
+  }
+  implicit def repeatedSingleRequestResponse[A <: Action](implicit h: SingleServiceHandler[A]): Service.Aux[Repeat[A], h.Request, h.Response] = {
+    new SingleServiceHandler[Repeat[A]] {
+      type Request = h.Request
+      type Response = h.Response
+      val requestTypeable = h.requestTypeable
+    }
+  }
 }

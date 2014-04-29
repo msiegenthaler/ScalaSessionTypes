@@ -31,9 +31,10 @@ package object akka extends akka.LowPriorityImplicits {
     def mapCoproduct[T](f: CoproductFold.Aux[C, C, Nothing] => C => T)(implicit ec: ExecutionContext): F[T] =
       functor map f(CoproductFold[C])
   }
-  implicit final class MapCoproductOnAskActorRef[A <: Action, Req, Resp <: Coproduct](functor: AskActorRef[A, Req, Resp]) {
+
+  implicit final class MapCoproductOnAskActorRef[A <: Action, Req, Resp <: Coproduct](ref: AskActorRef[A, Req, Resp]) {
     def mapCoproduct[T](f: CoproductFold.Aux[Resp, Resp, Nothing] => Resp => T)(implicit ec: ExecutionContext): AskActorRef[A, Req, T] =
-      functor map f(CoproductFold[Resp])
+      ref map f(CoproductFold[Resp])
   }
 
   implicit def requestSingleResponseHandler[A <: Action](a: A)(implicit rsr: RequestSingleResponse[A]) =

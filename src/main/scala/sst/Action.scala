@@ -50,6 +50,10 @@ trait ActionFactory {
   def send[Value]: Send[Value] = Send()
   def answer[Value] = send[Value]
   def receive[Value]: Receive[Value] = Receive()
+  def receiveAnyOf[A, B] = receiveAnyOf2[A, B]
+  def receiveAnyOf2[A, B] = anyOf(receive[A], receive[B])
+  def receiveAnyOf3[A, B, C] = anyOf(receive[A], receive[B], receive[C])
+  def receiveAnyOf4[A, B, C, D] = anyOf(receive[A], receive[B], receive[C], receive[D])
   def anyOf[A <: Action, B <: Action](a: A, b: B) = AnyOf(a, b)
   def anyOf[A <: Action, B <: Action, C <: Action](a: A, b: B, c: C) = AnyOf(a, AnyOf(b, c))
   def anyOf[A <: Action, B <: Action, C <: Action, D <: Action](a: A, b: B, c: C, d: D) =
@@ -91,7 +95,7 @@ class ActionOps[Self <: Action](action: Self) {
   def :&:[A <: Action](a: A): AnyOf[A, Self] = AnyOf(a, action)
   def :@:[A <: Action](a: A): Choice[A, Self] = Choice(a, action)
   def repeat: Repeat[Self] = Repeat(action)
-  def repeat[A <: Action](action: A) = andThen(Repeat(action))
+  def repeat[A <: Action](action: A): Then[Self, Repeat[A]] = andThen(Repeat(action))
   def break = andThen(Break())
 
   def <|(desc: String): Self = action.describe(desc).asInstanceOf[Self]

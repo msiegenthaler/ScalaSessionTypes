@@ -1,50 +1,17 @@
 package sst.akka
 
 import akka.actor._
+import akka.util.Timeout
 import sst._
-import sst.utils.{CoproductFoldIsComplete, CoproductFold}
-import shapeless.Coproduct
-import sst.utils.CoproductOps.{Contains, Remove}
-import shapeless.ops.coproduct.Selector
 
-/**
- * Subscription pattern for session types.
- *
- * Usage syntax where IntSource is a subscription session type:
- * <code>
- * class MyActor(intSource: ActorRef) extends Actor {
- * var counter = 0
- *
- * val nsub = intSource.subscription[IntSource].handle[Int](int => counter = counter + 1)
- * nsub.activate(SubscribeToInts)
- *
- * def receive = nsub.receive orElse {
- * case name: String => println(s"Hi $name, I counted $counter ints")
- * }
- * <code>
- */
-final class SubscriptionHandler(actor: ActorRef) {
-  def subscription[A <: Action](implicit s: Subscription[A]) = new Container[A, s.Setup, s.Message](s).initial
 
-  final class Container[A <: Action, Setup, Message <: Coproduct](s: Subscription[A]) {
-    private[SubscriptionHandler] def initial = new ResponseHandler[Message](CoproductFold[Message])
-
-    final class ResponseHandler[Remaining <: Coproduct] private[Container](handler: CoproductFold[Message, Remaining, _]) {
-      def handle[A] = new AnyRef {
-        def apply[B](f: A => B)(implicit r: Remove[Remaining, A], contains: Contains.Yes[Remaining, A], s: Selector[Message, A]) = {
-          val h = handler.fold(f.andThen(_ => ()))
-          new ResponseHandler(h)
-        }
-      }
-
-      def receive(implicit r: CoproductFoldIsComplete[Remaining]) = s.parse.andThen { msg_ =>
-        val msg = msg_.asInstanceOf[Message]
-        handler(msg)
+final class SingleNotificationSubscriptionHandler[A <: Action, Setup, Message](action: Action, sns: SingleNotificationSubscription[A]) {
+  def apply(actor: ActorRef): SubscriptionActorRef[A, Setup, Message] = {
+    new SubscriptionActorRef[A, Setup, Message](action, actor) {
+      def handle[X](f: Function1[Message, X]) = sns.parse andThen { msg =>
+        f(msg.asInstanceOf[Message]) //cast is safe
         ()
       }
-
-      def activate(setupMsg: Setup)(implicit subscriber: ActorRef, r: CoproductFoldIsComplete[Remaining]): Unit =
-        actor.!(setupMsg)(subscriber)
     }
   }
 }

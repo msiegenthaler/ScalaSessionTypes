@@ -38,4 +38,6 @@ package object akka extends akka.LowPriorityImplicits {
 
   implicit def requestSingleResponseHandler[A <: Action](a: A)(implicit rsr: RequestSingleResponse[A]) =
     new RequestSingleResponseHandler[A, rsr.Request, rsr.Response](a, rsr)
+  implicit def singleNotificationSubscriptionHandler[A <: Action](a: A)(implicit sns: SingleNotificationSubscription[A]) =
+    new SingleNotificationSubscriptionHandler[A, sns.Setup, sns.Message](a, sns)
 }

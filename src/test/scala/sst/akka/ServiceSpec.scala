@@ -5,9 +5,8 @@ import _root_.akka.actor._
 import org.specs2.mutable._
 import org.specs2.specification.Context
 import sst._
-import Service._
 
-class ServiceHandlerSpec extends Specification {
+class ServiceSpec extends Specification {
   abstract class actors extends TestKit(ActorSystem("SubscriptionHandlerSpec")) with Context with After {
     override def after = system.shutdown()
   }

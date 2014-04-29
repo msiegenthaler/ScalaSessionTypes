@@ -15,18 +15,16 @@ object Example extends App {
   implicit val defaultTimeout: Timeout = 1.second
 
 
-  type ConvertNumberClient = ![String] :>: (?[Int] :&: ?[Exception])
-  val server = Opposite[ConvertNumberClient]
-  type ConvertNumberServer = server.Out
-
+  val convertNumberClient = send[String].receiveAnyOf[Int, Exception]
+  val convertNumberServer = Opposite(convertNumberClient)
 
   def descriptions() = {
     println("client:")
-    println(Description.asTree[ConvertNumberClient])
-    println(RequestResponse[ConvertNumberClient].description)
+    println(Description.asTree[convertNumberClient.Type])
+    println(RequestResponse[convertNumberClient.Type].description)
     println()
     println("server:")
-    println(Description.asTree[ConvertNumberServer])
+    println(Description.asTree[convertNumberServer.Type])
     println()
   }
 
@@ -45,14 +43,14 @@ object Example extends App {
     val actor: ActorRef = akka.actorOf(Props(new ConverterActor))
 
     println("Converting numbers")
-    val convertNumber = actor.ask[ConvertNumberClient]
-      .handle[Int](identity)
-      .handle[Exception](_ => -1)
+    val convertNumber = convertNumberClient(actor).mapCoproduct(_.
+      fold[Int](identity).
+      fold[Exception](_ => -1)
+    )
 
-
-    val r1: Int = Await.result(convertNumber.send("123"), 1.second)
+    val r1: Int = Await.result(convertNumber ? "123", 1.second)
     println(s"Converting 123 yields $r1")
-    val r2: Int = Await.result(convertNumber.send("a2"), 1.second)
+    val r2: Int = Await.result(convertNumber ? "a2", 1.second)
     println(s"Converting a2 yields $r2")
 
   }

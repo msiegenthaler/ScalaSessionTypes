@@ -57,8 +57,40 @@ class ActionSpec extends Specification {
       numberGenerator must_== Some("Sends one number per second to the sender of ()")
     }
     "be described by text after the definition" in {
-      val adder = send[(Int,Int)].receive[Int] <| "Add two numbers"
+      val adder = send[(Int, Int)].receive[Int] <| "Add two numbers"
       adder.description must_== Some("Add two numbers")
+    }
+  }
+  "Action[A]" should {
+    "instantiate ![String]" in {
+      type A = ![String]
+      val i = Action[A]
+      i must not beNull;
+      i.description must beNone
+    }
+    "instantiate ![String] :>: ?[Int]" in {
+      type A = ![String] :>: ?[Int]
+      val i = Action[A]
+      i must not beNull;
+      i.description must beNone
+    }
+    "instantiate ![String] :>: (?[String] :&: ?[Int])" in {
+      type A = ![String] :>: (?[String] :&: ?[Int])
+      val i = Action[A]
+      i must not beNull;
+      i.description must beNone
+    }
+    "instantiate Repeat[![String] :>: (?[String] :&: ?[Int])]" in {
+      type A = Repeat[![String] :>: (?[String] :&: ?[Int])]
+      val i = Action[A]
+      i must not beNull;
+      i.description must beNone
+    }
+    "instantiate Repeat[![String] :>: (?[String] :@: ?[Int]) :@: Break]" in {
+      type A = Repeat[![String] :>: (?[String] :@: ?[Int]) :@: Break]
+      val i = Action[A]
+      i must not beNull;
+      i.description must beNone
     }
   }
 }

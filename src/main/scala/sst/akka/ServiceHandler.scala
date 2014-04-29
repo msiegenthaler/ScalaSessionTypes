@@ -1,9 +1,9 @@
 package sst.akka
 
-import _root_.akka.actor._
-import sst._
+import akka.actor._
 import shapeless._
 import shapeless.syntax.typeable._
+import sst._
 
 /** Handler for simple services (one request, one response). */
 trait SingleServiceHandler[A <: Action] {
@@ -20,16 +20,5 @@ trait SingleServiceHandler[A <: Action] {
 
 object Service {
   def apply[A <: Action](implicit h: SingleServiceHandler[A]): Aux[A, h.Request, h.Response] = h
-
   type Aux[A <: Action, Req, Resp] = SingleServiceHandler[A] {type Request = Req; type Response = Resp}
-  implicit def singleRequestResponse[Req: Typeable, Resp]: Aux[Then[?[Req], ![Resp]], Req, Resp] = new SingleServiceHandler[Then[?[Req], ![Resp]]] {
-    type Request = Req
-    type Response = Resp
-    val requestTypeable = implicitly[Typeable[Req]]
-  }
-  implicit def repeatedSingleRequestResponse[A <: Action](implicit h: SingleServiceHandler[A]): Aux[Repeat[A], h.Request, h.Response] = new SingleServiceHandler[Repeat[A]] {
-    type Request = h.Request
-    type Response = h.Response
-    val requestTypeable = h.requestTypeable
-  }
 }

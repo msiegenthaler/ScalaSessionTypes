@@ -3,7 +3,6 @@ package sst.akka
 import scala.language.reflectiveCalls
 import akka.actor._
 import akka.testkit.{TestProbe, TestKit}
-import shapeless._
 import org.specs2.mutable._
 import org.specs2.specification.Context
 import sst._
@@ -20,7 +19,7 @@ class SubscriptionHandlerSpec extends Specification {
   case object SubscribeIntString
   val intStringSubscription = send[SubscribeIntString.type].repeat(receiveAnyOf[Int, String])
 
-  "SubscriptionHandler" should {
+  "action(actor)" should {
     "support subscriptions with one option in a nice and fluent interface" in new actors {
       val probe = TestProbe()
       val checker = TestProbe()
@@ -39,7 +38,7 @@ class SubscriptionHandlerSpec extends Specification {
       checker.expectMsg("ping 2 received")
     }
 
-    "support more than one message type with coproduct.select" in new actors {
+    "support subscriptions with more than one message type (coproduct.select)" in new actors {
       val probe = TestProbe()
       val checker = TestProbe()
       val subscriber = system actorOf Props(new Actor {
@@ -62,7 +61,7 @@ class SubscriptionHandlerSpec extends Specification {
       checker.expectMsg("Got an Int: 123")
     }
 
-    "support more than one message type" in new actors {
+    "support subscriptions with more than one message type" in new actors {
       val probe = TestProbe()
       val checker = TestProbe()
       val subscriber = system actorOf Props(new Actor {
@@ -70,8 +69,8 @@ class SubscriptionHandlerSpec extends Specification {
         subscription.activate(SubscribeIntString)
 
         val subscriptionHandler = subscription
-          .handle[String](s => checker.ref ! s"Got a string: $s")
-          .handle[Int](i => checker.ref ! s"Got an Int: $i")
+          .handlerFor[String](s => checker.ref ! s"Got a string: $s")
+          .handlerFor[Int](i => checker.ref ! s"Got an Int: $i")
         override def receive = subscriptionHandler
       })
       probe.expectMsg(SubscribeIntString)

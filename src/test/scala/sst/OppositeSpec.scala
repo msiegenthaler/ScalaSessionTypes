@@ -87,6 +87,14 @@ class OppositeSpec extends Specification {
       implicitly[Op =:= op.Type]
       op must not beNull
     }
+
+    "be send[String] for receive[String]" in {
+      Opposite(receive[String]) must_== send[String]
+    }
+    "be send[String].receiveAnyOf[Int,Long] for receive[String].chooseFrom(send[Int], send[Long])" in {
+      Opposite(receive[String].chooseFrom(send[Int], send[Long])) must_==
+        send[String].receiveAnyOf[Int, Long]
+    }
   }
 
   "Opposite.is" should {

@@ -27,6 +27,7 @@ object Opposite {
   def is[A <: Action, B <: Action](implicit w: Aux[A, B]) = ()
 
   def apply[A <: Action](implicit r: Opposite[A]): r.Out = r()
+  def apply[A <: Action](a: A)(implicit r: Opposite[A]): r.Out = r()
 
   @implicitNotFound("Not dual (client/server): ${A} and ${Out0}")
   type Aux[A <: Action, Out0 <: Action] = Opposite[A] {type Out = Out0}

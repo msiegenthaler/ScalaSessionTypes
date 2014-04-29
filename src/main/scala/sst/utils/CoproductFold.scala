@@ -32,7 +32,8 @@ object CoproductFold extends CoproductFoldLowPriority {
     val foldingFun = PartialFunction.empty
   }
 
-  implicit def complete[On <: Coproduct, Last](c: CoproductFold[On, Last :+: CNil]): CoproductFoldLast[On, Last :+: CNil] = {
+  type AuxLast[O <: Coproduct, Rem <: Coproduct, R] = CoproductFoldLast[O, Rem] {type Result = R}
+  implicit def complete[On <: Coproduct, Last](c: CoproductFold[On, Last :+: CNil]): AuxLast[On, Last :+: CNil, c.Result] = {
     new CoproductFoldLast[On, Last :+: CNil] {
       type Result = c.Result
       def foldingFun = c.foldingFun
@@ -41,9 +42,9 @@ object CoproductFold extends CoproductFoldLowPriority {
 }
 trait CoproductFoldLowPriority {
   type Aux[O <: Coproduct, Rem <: Coproduct, R] = CoproductFold[O, Rem] {type Result = R}
-  type AuxIncomplete[O <: Coproduct, Rem <: Coproduct, R] = CoproductFoldMore[O, Rem] {type Result = R}
+  type AuxMore[O <: Coproduct, Rem <: Coproduct, R] = CoproductFoldMore[O, Rem] {type Result = R}
 
-  implicit def incomplete[On <: Coproduct, Remaining <: Coproduct](c: CoproductFold[On, Remaining]): CoproductFoldMore[On, Remaining] = {
+  implicit def incomplete[On <: Coproduct, Remaining <: Coproduct](c: CoproductFold[On, Remaining]): AuxMore[On, Remaining, c.Result] = {
     new CoproductFoldMore[On, Remaining] {
       type Result = c.Result
       def foldingFun = c.foldingFun

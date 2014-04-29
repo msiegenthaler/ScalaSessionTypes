@@ -25,8 +25,8 @@ class AskSpec extends Specification {
   implicit val timeout: Timeout = 100
   def valueOf[A](f: Future[A]) = Await.result(f, timeout.duration)
 
-  "AskHandler" should {
-    "allow action(actor).ask syntax for request/response with one response variant" in new actors {
+  "action(actor)" should {
+    "allow ask syntax for request/response with one response variant" in new actors {
       val probe = TestProbe()
       val nc = numberConverter(probe.ref)
       val f = nc ask "12"
@@ -34,7 +34,7 @@ class AskSpec extends Specification {
       probe.reply(12)
       valueOf(f) must_== 12
     }
-    "allow action(actor).ask syntax for repeated request/response with one response variant" in new actors {
+    "allow ask syntax for repeated request/response with one response variant" in new actors {
       val probe = TestProbe()
       val nc = numberConverterR(probe.ref)
       val f = nc ask "42"
@@ -43,7 +43,7 @@ class AskSpec extends Specification {
       valueOf(f) must_== 42
     }
 
-    "allow action(actor).map(...).ask syntax for request/response with multiple response variant" in new actors {
+    "allow map(...).ask syntax for request/response with multiple response variant" in new actors {
       val probe = TestProbe()
       val mapIS = CoproductFold[Int :+: String :+: CNil].
         fold[Int](identity).
@@ -60,7 +60,7 @@ class AskSpec extends Specification {
       probe.reply(123)
       valueOf(f2) must_== 123
     }
-    "allow action(actor).mapCoproduct(...).ask syntax for request/response with multiple response variant" in new actors {
+    "allow mapCoproduct(...).ask syntax for request/response with multiple response variant" in new actors {
       val probe = TestProbe()
       val mapIS = CoproductFold[Int :+: String :+: CNil].
         fold[Int](identity).

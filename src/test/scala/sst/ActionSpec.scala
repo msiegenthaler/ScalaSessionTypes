@@ -54,7 +54,7 @@ class ActionSpec extends Specification {
     }
     "be described by action.describe" in {
       val numberGenerator = send[Unit].repeat(receive[Int]) describe "Sends one number per second to the sender of ()"
-      numberGenerator must_== Some("Sends one number per second to the sender of ()")
+      numberGenerator.description must_== Some("Sends one number per second to the sender of ()")
     }
     "be described by text after the definition" in {
       val adder = send[(Int, Int)].receive[Int] <| "Add two numbers"

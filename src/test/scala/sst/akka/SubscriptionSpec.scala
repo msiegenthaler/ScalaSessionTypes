@@ -3,6 +3,7 @@ package sst.akka
 import scala.language.reflectiveCalls
 import akka.actor._
 import akka.testkit.{TestProbe, TestKit}
+import shapeless._
 import org.specs2.mutable._
 import org.specs2.specification.Context
 import sst._
@@ -36,6 +37,29 @@ class SubscriptionHandlerSpec extends Specification {
 
       subscriber ! PingNotification(2)
       checker.expectMsg("ping 2 received")
+    }
+
+    "support more than one message type with coproduct.select" in new actors {
+      val probe = TestProbe()
+      val checker = TestProbe()
+      val subscriber = system actorOf Props(new Actor {
+        val subscription = intStringSubscription(probe.ref)
+        subscription.activate(SubscribeIntString)
+
+        val subscriptionHandler = subscription
+          .handle { msg =>
+          msg.select[String].foreach(s => checker.ref ! s"Got a string: $s")
+          msg.select[Int].foreach(i => checker.ref ! s"Got an Int: $i")
+        }
+        override def receive = subscriptionHandler
+      })
+      probe.expectMsg(SubscribeIntString)
+
+      subscriber ! "Mario"
+      checker.expectMsg("Got a string: Mario")
+
+      subscriber ! 123
+      checker.expectMsg("Got an Int: 123")
     }
 
     "support more than one message type" in new actors {

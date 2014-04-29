@@ -5,6 +5,6 @@ import sst._
 
 class LowPriorityImplicits {
   /** Ask for coproduct-response request/response. */
-  implicit def requestCoproductResponseHandlerFactory[A <: Action](a: A)(implicit rr: RequestResponse[A]) =
-    new RequestCoproductResponseHandlerFactory[A, rr.Request, rr.Response](a, rr)
+  implicit def requestCoproductResponseHandler[A <: Action](a: A)(implicit rr: RequestResponse[A]) =
+    new RequestCoproductResponseHandler[A, rr.Request, rr.Response](a, rr)
 }

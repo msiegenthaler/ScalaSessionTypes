@@ -5,13 +5,18 @@ import shapeless._
 import shapeless.test.illTyped
 
 class CoproductFoldSpec extends Specification {
+  type S = String :+: CNil
   type SI = String :+: Int :+: CNil
   type SIL = String :+: Int :+: Long :+: CNil
   val sSI = Coproduct[SI]("Mario")
 
   "CoproductFold" should {
-    "allow typesafe handling of all cases" in {
-      val handler = CoproductFold[SIL]
+    "allow typesafe handling of all cases for single element coproduct" in {
+      val handler: S => String = CoproductFold[S].fold[String](identity)
+      handler(Coproduct[S]("Mario")) must_== "Mario"
+    }
+    "allow typesafe handling of all cases for 3 element coproduct" in {
+      val handler: SIL => String = CoproductFold[SIL]
         .fold[String](identity)
         .fold[Int](_.toString)
         .fold[Long](_.toString)
@@ -30,7 +35,7 @@ class CoproductFoldSpec extends Specification {
       illTyped("h(sSI)")
       val h2 = h.fold[String](_ => 1)
       illTyped("h2(sSI)")
-      val h3 = h2.fold[Int](_ => 2)
+      val h3: SI => Int = h2.fold[Int](_ => 2)
       h3(sSI) must_== 1
     }
   }
